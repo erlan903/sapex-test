@@ -8,5 +8,19 @@
             "start_time_ms": 1000,
             "data_size_kb": 5000
         }
+    ],
+    "events": [
+        {
+            "type": "path_down",
+            "time_ms": 3000,
+            "path": ["1-ff00:0:111-br1-111-1", "1-ff00:0:110-br1-110-1", "1-ff00:0:112-br1-112-1"],
+            "description": "Primary path failure - simulating link congestion"
+        },
+        {
+            "type": "path_up",
+            "time_ms": 7000,
+            "path": ["1-ff00:0:111-br1-111-1", "1-ff00:0:110-br1-110-1", "1-ff00:0:112-br1-112-1"],
+            "description": "Primary path recovery"
+        }
     ]
 }

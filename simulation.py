@@ -4,18 +4,38 @@ import json
 from topology import Topology
 from application import Application
 from path_selection import ShortestPathAlgorithm
+from events import EventManager
+from app_registry import ApplicationRegistry
 
 class Simulation:
     def __init__(self, topology_file, traffic_file, algorithm_class=ShortestPathAlgorithm):
         self.env = simpy.Environment()
         self.topology = Topology(self.env, topology_file)
-        self.traffic_scenario = self.load_traffic_scenario(traffic_file)
         self.path_selection_algorithm = algorithm_class(self.topology)
         self.results = {"packet_loss": 0, "latencies": []}
 
+        # Application registry for path-app tracking
+        self.app_registry = ApplicationRegistry()
+
+        # Event manager for scheduled failures
+        self.event_manager = EventManager(
+            self.env,
+            self.path_selection_algorithm,
+            self.app_registry
+        )
+
+        # Load traffic scenario (must be after event_manager is created)
+        self.traffic_scenario = self.load_traffic_scenario(traffic_file)
+
     def load_traffic_scenario(self, filename):
         with open(filename, 'r') as f:
-            return json.load(f)
+            scenario = json.load(f)
+
+        # Load events if present
+        if 'events' in scenario:
+            self.event_manager.load_events(scenario)
+
+        return scenario
 
     def run(self):
         print("Starting beaconing process...")
@@ -34,7 +54,7 @@ class Simulation:
         for flow in self.traffic_scenario['flows']:
             source_host = self.topology.get_host(flow['source'])
             destination_host = self.topology.get_host(flow['destination'])
-            
+
             if source_host and destination_host:
                 app = Application(
                     self.env,
@@ -43,11 +63,15 @@ class Simulation:
                     destination_host,
                     self.path_selection_algorithm,
                     flow,
-                    self.results
+                    self.results,
+                    self.app_registry
                 )
                 self.env.process(app.run())
             else:
                 print(f"Warning: Could not find source or destination host for flow {flow['name']}")
+
+        # Schedule event manager process
+        self.env.process(self.event_manager.schedule_events())
 
         # Run the simulation for a specified duration
         simulation_duration = self.traffic_scenario.get("duration_ms", 1000)

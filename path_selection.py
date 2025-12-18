@@ -1,16 +1,87 @@
 # path_selection.py
 from abc import ABC, abstractmethod
 import networkx as nx
+import random
 
 class PathSelectionAlgorithm(ABC):
     def __init__(self, topology):
         self.topology = topology
         self.path_store = {} # (src_as, dst_as) -> [path1, path2, ...]
+        self.unavailable_paths = {} # (src_as, dst_as) -> set(tuple(path))
 
     @abstractmethod
     def select_path(self, source_as, destination_as):
         """Selects and returns the best path."""
         pass
+
+    def mark_path_down(self, router_path):
+        """
+        Mark a specific path as unavailable due to failure.
+
+        Args:
+            router_path (list): Router sequence like ["br1-110-1", "br1-111-1", "br1-112-1"]
+
+        Returns:
+            list: Affected (src_as, dst_as) pairs that used this path
+        """
+        path_tuple = tuple(router_path)
+        affected_pairs = []
+
+        # Find all AS pairs that use this path
+        for (src_as, dst_as), paths in self.path_store.items():
+            if router_path in paths:
+                if (src_as, dst_as) not in self.unavailable_paths:
+                    self.unavailable_paths[(src_as, dst_as)] = set()
+                self.unavailable_paths[(src_as, dst_as)].add(path_tuple)
+                affected_pairs.append((src_as, dst_as))
+
+        print(f"Marked path DOWN: {router_path}")
+        print(f"Affected AS pairs: {affected_pairs}")
+        return affected_pairs
+
+    def mark_path_up(self, router_path):
+        """
+        Mark a previously failed path as available again.
+
+        Args:
+            router_path (list): Router sequence to restore
+
+        Returns:
+            list: Affected (src_as, dst_as) pairs that can now use this path
+        """
+        path_tuple = tuple(router_path)
+        affected_pairs = []
+
+        # Remove from unavailable paths
+        for (src_as, dst_as), unavail_set in list(self.unavailable_paths.items()):
+            if path_tuple in unavail_set:
+                unavail_set.remove(path_tuple)
+                affected_pairs.append((src_as, dst_as))
+                # Clean up empty sets
+                if not unavail_set:
+                    del self.unavailable_paths[(src_as, dst_as)]
+
+        print(f"Marked path UP: {router_path}")
+        print(f"Affected AS pairs: {affected_pairs}")
+        return affected_pairs
+
+    def is_path_available(self, router_path):
+        """
+        Check if a path is currently available (not marked down).
+
+        Args:
+            router_path (list): Router sequence to check
+
+        Returns:
+            bool: True if path is available, False otherwise
+        """
+        path_tuple = tuple(router_path)
+
+        # Check if this path is in any unavailable set
+        for unavail_set in self.unavailable_paths.values():
+            if path_tuple in unavail_set:
+                return False
+        return True
 
     def discover_paths(self, use_graph_traversal=False):
         """
@@ -54,7 +125,12 @@ class ShortestPathAlgorithm(PathSelectionAlgorithm):
         available_paths = self.path_store.get((source_as, destination_as), [])
         if not available_paths:
             return None
-        
+
+        # Filter out unavailable paths
+        available_paths = [p for p in available_paths if self.is_path_available(p)]
+        if not available_paths:
+            return None
+
         # Select the path with the minimum number of hops
         return min(available_paths, key=len)
 
@@ -93,21 +169,21 @@ class SapexAlgorithm(PathSelectionAlgorithm):
         super().__init__(topology)
         self.use_beaconing = use_beaconing
         self.discover_paths(use_graph_traversal=not use_beaconing)
-        
+
         # Dictionary to store our PathCandidate objects
         # Key: tuple(tuple(path_list)), Value: PathCandidate object
         self.candidates_map = {}
-        
-    #Assign an initial value to the point budget of the application
-    self.budget = 3  # Example
-        
-    # Initialize metric constraints for the application
-    self.max_latency = 200.0 # ms
-    self.max_loss_rate = 0.1 # 10%
-    self.min_throughput = 0 # change later
-        
-    # Initialize the partition size N for the application
-    self.partition_size_N = 2
+
+        #Assign an initial value to the point budget of the application
+        self.budget = 3  # Example
+
+        # Initialize metric constraints for the application
+        self.max_latency = 200.0 # ms
+        self.max_loss_rate = 0.1 # 10%
+        self.min_throughput = 0 # change later
+
+        # Initialize the partition size N for the application
+        self.partition_size_N = 2
     
     #Step 1: Retrieve paths -- Beaconing integration needed
 
@@ -201,19 +277,28 @@ class SapexAlgorithm(PathSelectionAlgorithm):
                 candidate.update_latency(latency_sample)    
         
         
-    def select_path(self, source_as, destination_as):    
-     
+    def select_path(self, source_as, destination_as):
+
         retrieved_paths = self._sync_candidates(source_as, destination_as)
         if not retrieved_paths:
-            return None    
-        
-        #Compare the path metrics with those constraints and remove the insufficient ones 
+            return None
+
+        # Filter out paths marked as down
+        retrieved_paths = [
+            p for p in retrieved_paths
+            if self.is_path_available(p.router_path)
+        ]
+
+        if not retrieved_paths:
+            return None
+
+        #Compare the path metrics with those constraints and remove the insufficient ones
         #from the path set (python list of paths)
-        #if else logic can be used 
+        #if else logic can be used
         filtered_paths = []
         for p in retrieved_paths:
             loss_rate = (p.packet_loss_count / p.packets_sent) if p.packets_sent > 0 else 0.0
-            
+
             if p.avg_latency <= self.max_latency and loss_rate <= self.max_loss_rate:
                 filtered_paths.append(p)
             else:

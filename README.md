@@ -665,6 +665,369 @@ yield self.env.timeout(5000)  # From 2000 to 5000
 - Host not connected to router
 - Missing forwarding logic for destination host
 
+## Dynamic Path Failure Simulation
+
+The framework supports **dynamic path failure events** that can be scheduled at specific simulation times. This enables realistic testing of path selection algorithms under failure conditions.
+
+### Features
+
+- **Configuration-based Events**: Define path down/up events in traffic.json
+- **Application Notifications**: Applications are notified when their paths fail
+- **Automatic Failover**: Applications can re-select alternative paths
+- **Path Recovery**: Paths can be restored at scheduled times
+- **Path-level Granularity**: Mark specific router sequences as unavailable
+
+### Quick Example
+
+Add events to your `traffic.json`:
+
+```json
+{
+  "duration_ms": 10000,
+  "flows": [
+    {
+      "name": "WebServerTraffic",
+      "source": "1-ff00:0:111,10.0.0.5",
+      "destination": "1-ff00:0:112,172.16.5.5",
+      "start_time_ms": 1000,
+      "data_size_kb": 5000
+    }
+  ],
+  "events": [
+    {
+      "type": "path_down",
+      "time_ms": 3000,
+      "path": ["1-ff00:0:111-br1-111-1", "1-ff00:0:110-br1-110-1", "1-ff00:0:112-br1-112-1"],
+      "description": "Primary path failure - simulating link congestion"
+    },
+    {
+      "type": "path_up",
+      "time_ms": 7000,
+      "path": ["1-ff00:0:111-br1-111-1", "1-ff00:0:110-br1-110-1", "1-ff00:0:112-br1-112-1"],
+      "description": "Primary path recovery"
+    }
+  ]
+}
+```
+
+### Event Configuration
+
+#### Event Types
+
+- **`path_down`**: Marks a path as unavailable. Path selection algorithms will filter out this path.
+- **`path_up`**: Restores a previously failed path, making it available for selection again.
+
+#### Event Fields
+
+- **`type`** (required): Event type - either `"path_down"` or `"path_up"`
+- **`time_ms`** (required): Absolute simulation time in milliseconds when the event occurs
+- **`path`** (required): Array of router IDs representing the path (must match beaconing format)
+- **`description`** (optional): Human-readable description for logging
+
+#### Path Format
+
+Paths must be specified as complete router sequences in the format `"ISD-AS-router"`:
+
+```json
+["1-ff00:0:111-br1-111-1", "1-ff00:0:110-br1-110-1", "1-ff00:0:112-br1-112-1"]
+```
+
+To find valid paths, run the simulation first and check the "All available paths discovered" output.
+
+### How It Works
+
+#### 1. Event Loading
+
+Events are loaded from `traffic.json` during simulation initialization:
+
+```python
+# From simulation.py
+self.event_manager = EventManager(
+    self.env,
+    self.path_selection_algorithm,
+    self.app_registry
+)
+self.event_manager.load_events(scenario)
+```
+
+#### 2. Event Scheduling
+
+Events are scheduled as SimPy processes and execute at their designated times:
+
+```python
+# From events.py
+def schedule_events(self):
+    for event in self.events:
+        yield self.env.timeout(event['time_ms'] - self.env.now)
+        if event['type'] == 'path_down':
+            self._execute_path_down(event)
+        elif event['type'] == 'path_up':
+            self._execute_path_up(event)
+```
+
+#### 3. Path Marking
+
+When a `path_down` event occurs:
+
+1. The path is marked unavailable in the path selection algorithm
+2. The path selector identifies affected AS pairs
+3. Applications using the path are notified via callbacks
+
+```python
+# From path_selection.py
+def mark_path_down(self, router_path):
+    """Mark a specific path as unavailable due to failure."""
+    # Store in unavailable_paths dictionary
+    # Return list of affected (src_as, dst_as) pairs
+```
+
+#### 4. Application Notification
+
+Applications receive a callback when their current path goes down:
+
+```python
+# From application.py
+def on_path_down(self, router_path):
+    """Callback invoked when the current path goes down."""
+    print(f"Path down notification received")
+    self.is_path_down = True
+    self._attempt_path_reselection()
+```
+
+#### 5. Path Re-selection
+
+Applications automatically attempt to find alternative paths:
+
+```python
+def _attempt_path_reselection(self):
+    """Attempt to select a new path after failure."""
+    new_path = self.path_selector.select_path(
+        self.source.isd_as,
+        self.destination.isd_as
+    )
+
+    if new_path:
+        print(f"Switched to new path: {' -> '.join(new_path)}")
+        self.current_path = new_path
+        self.is_path_down = False
+    else:
+        print(f"No alternative path available")
+```
+
+### Architecture Components
+
+The path failure system consists of three main components:
+
+#### ApplicationRegistry (app_registry.py)
+
+Tracks which applications are using which paths:
+
+```python
+class ApplicationRegistry:
+    def register_path_usage(self, application, router_path)
+    def notify_path_down(self, router_path, affected_as_pairs)
+    def notify_path_up(self, router_path, affected_as_pairs)
+```
+
+#### EventManager (events.py)
+
+Manages scheduled path failure events:
+
+```python
+class EventManager:
+    def load_events(self, config_dict)
+    def schedule_events(self)  # SimPy generator
+    def _execute_path_down(self, event)
+    def _execute_path_up(self, event)
+```
+
+#### Path Availability Methods (path_selection.py)
+
+Added to the `PathSelectionAlgorithm` base class:
+
+```python
+def mark_path_down(self, router_path)      # Mark path unavailable
+def mark_path_up(self, router_path)        # Restore path
+def is_path_available(self, router_path)   # Check availability
+```
+
+### Example Output
+
+When a path failure event occurs, you'll see output like:
+
+```
+[3000.00] EVENT: Path down - ['1-ff00:0:111-br1-111-1', '1-ff00:0:110-br1-110-1', '1-ff00:0:112-br1-112-1']
+[3000.00]   Description: Primary path failure - simulating link congestion
+Marked path DOWN: ['1-ff00:0:111-br1-111-1', '1-ff00:0:110-br1-110-1', '1-ff00:0:112-br1-112-1']
+Affected AS pairs: [('1-ff00:0:111', '1-ff00:0:112')]
+[3000.00]   Affected AS pairs: [('1-ff00:0:111', '1-ff00:0:112')]
+  Notifying 1 application(s) using this path
+[3000.00] App App-WebServerTraffic: Path down notification received
+[3000.00] App App-WebServerTraffic: Switched to new path: 1-ff00:0:111-br1-111-1 -> 1-ff00:0:112-br1-112-1
+```
+
+If a path recovery event occurs:
+
+```
+[7000.00] EVENT: Path up - ['1-ff00:0:111-br1-111-1', '1-ff00:0:110-br1-110-1', '1-ff00:0:112-br1-112-1']
+[7000.00]   Description: Primary path recovery
+Marked path UP: ['1-ff00:0:111-br1-111-1', '1-ff00:0:110-br1-110-1', '1-ff00:0:112-br1-112-1']
+Affected AS pairs: [('1-ff00:0:111', '1-ff00:0:112')]
+```
+
+### Testing Scenarios
+
+#### Scenario 1: Single Path Failure with Alternative
+
+```json
+{
+  "events": [
+    {
+      "type": "path_down",
+      "time_ms": 3000,
+      "path": ["AS111-router1", "AS110-core", "AS112-router1"],
+      "description": "Primary path fails"
+    }
+  ]
+}
+```
+
+Application switches to alternative path if available.
+
+#### Scenario 2: Cascading Failures
+
+```json
+{
+  "events": [
+    {
+      "type": "path_down",
+      "time_ms": 3000,
+      "path": ["AS111-router1", "AS110-core1", "AS112-router1"]
+    },
+    {
+      "type": "path_down",
+      "time_ms": 5000,
+      "path": ["AS111-router1", "AS110-core2", "AS112-router1"]
+    }
+  ]
+}
+```
+
+Tests behavior when all paths fail.
+
+#### Scenario 3: Failure and Recovery Cycle
+
+```json
+{
+  "events": [
+    {
+      "type": "path_down",
+      "time_ms": 3000,
+      "path": ["AS111-router1", "AS110-core", "AS112-router1"]
+    },
+    {
+      "type": "path_up",
+      "time_ms": 7000,
+      "path": ["AS111-router1", "AS110-core", "AS112-router1"]
+    }
+  ]
+}
+```
+
+Path becomes available again after recovery.
+
+#### Scenario 4: Multiple Concurrent Flows
+
+```json
+{
+  "flows": [
+    {"name": "Flow1", "source": "AS111,host1", "destination": "AS112,host2", "start_time_ms": 1000},
+    {"name": "Flow2", "source": "AS111,host1", "destination": "AS113,host3", "start_time_ms": 1000}
+  ],
+  "events": [
+    {
+      "type": "path_down",
+      "time_ms": 4000,
+      "path": ["AS111-router", "AS110-core", "AS112-router"],
+      "description": "Affects only Flow1"
+    }
+  ]
+}
+```
+
+Only affected applications are notified.
+
+### Edge Cases
+
+#### No Alternative Paths
+
+When all paths fail and no alternatives exist:
+
+```
+[3000.00] App App-WebServerTraffic: Path down notification received
+[3000.00] App App-WebServerTraffic: No alternative path available
+```
+
+The application continues to retry every 10ms until a path becomes available or the simulation ends.
+
+#### Event Before Application Start
+
+If an event occurs before traffic starts:
+- The path is marked down in the path selector
+- Applications started later will not select the failed path
+- No notifications are sent (no apps running yet)
+
+#### Path Recovery Without Failure
+
+If a `path_up` event targets a path that wasn't down:
+- The event is processed normally
+- No state changes occur
+- No errors are raised
+
+### Custom Algorithm Integration
+
+Path selection algorithms automatically respect path availability:
+
+```python
+class MyAlgorithm(PathSelectionAlgorithm):
+    def select_path(self, source_as, destination_as):
+        paths = self.path_store.get((source_as, destination_as), [])
+
+        # Filter unavailable paths automatically
+        available = [p for p in paths if self.is_path_available(p)]
+
+        # Your selection logic here
+        return my_selection_logic(available)
+```
+
+Both `ShortestPathAlgorithm` and `SapexAlgorithm` already filter unavailable paths.
+
+### Performance Metrics with Failures
+
+Track how failures affect performance:
+
+```python
+# In simulation.py print_results()
+def print_results(self):
+    print("\n--- Simulation Results ---")
+    print(f"Total Packets Sent: {total_sent}")
+    print(f"Total Packets Lost: {total_lost}")
+    print(f"Packet Loss Rate: {loss_rate:.2f}%")
+    print(f"Average Latency: {avg_latency:.2f}ms")
+
+    # Analyze impact of failures
+    if total_lost > 0:
+        print(f"\nPackets lost during path failures")
+```
+
+### Best Practices
+
+1. **Event Timing**: Schedule events after beaconing completes (after 2000ms)
+2. **Path Validation**: Run simulation once to see discovered paths before adding events
+3. **Recovery Timing**: Allow sufficient time between failure and recovery
+4. **Multiple Events**: Space events apart to observe individual effects
+5. **Application Start Time**: Ensure apps start before failure events if testing failover
+
 ## Contributing
 
 To extend the framework:
@@ -673,7 +1036,8 @@ To extend the framework:
 2. **Complex Topologies**: Add multi-core or hierarchical AS structures
 3. **Advanced Beaconing**: Implement beacon filtering, expiration, updates
 4. **QoS Features**: Add bandwidth reservation or priority queuing
-5. **Failure Simulation**: Model link failures and path re-convergence
+5. **Failure Simulation**: Extend event types (link-level, router-level, AS-level failures)
+6. **Automatic Failure Detection**: Trigger path_down based on loss/latency thresholds
 
 ## References
 

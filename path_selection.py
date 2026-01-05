@@ -745,9 +745,9 @@ class SapexAlgorithm(PathSelectionAlgorithm):
         #for loop on path dictionary/list
         for p in filtered_paths:
             #initalize weights for each path at the beginning of the iteration
-            p.weight_throughput = 0.1
-            p.weight_packet_loss = -0.1
-            p.weight_rtt = -0.1
+            weight_throughput = 0.1
+            weight_packet_loss = -0.1
+            weight_rtt = -0.1
             
             #Priority to probing data
             rtt_val = self.get_path_latency(p.router_path)

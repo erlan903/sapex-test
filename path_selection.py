@@ -655,8 +655,42 @@ class SapexAlgorithm(PathSelectionAlgorithm):
                 result_paths.append(path_candidate)
 
         return result_paths
+    
+    def calculate_diversity_bonus(self, candidate_path_obj, active_path_objects):
+        #weight_diversity * (1 - ((interfaces of active paths of the application.intersection(
+            # interfaces of path p)) / interfaces of path p))
+        # Find out where to get "interfaces of active paths of the application" and how to
+        #fetch this from the application.py or app_registry.py to path_selection.py
+        #What if the application have not used any path yet? So there is no paths info
+        #of used paths of app a. --> simply assign 1 to diversity bonus, to indicate full bonus
+        # or zero to indicate no bonus in the first call
+        weight_diversity = 1
+        ep_set = candidate_path_obj.get_interface_ids()
+        size_ep = len(ep_set)
+        
+        # Safety check: if path has no interfaces (e.g. source->dest direct?), avoid division by zero
+        if size_ep == 0:
+            return 0.0
+        
+        # Extract interfaces already in use by the application (Ea)
+        ea_set = set()
+        for active_path in active_path_objects:
 
-    def select_path(self, source_as, destination_as):
+            if active_path != candidate_path_obj:
+                ea_set.update(active_path.get_interface_ids())
+        
+        if not ea_set:
+            return weight_diversity
+        
+        overlap_count = len(ep_set.intersection(ea_set))
+        fraction = overlap_count / len(ea_set)
+        diversity_bonus = weight_diversity * (1 - len(fraction))        
+        return diversity_bonus  
+            
+    #When the application requests a path, it must introduce itself to the algorithm 
+    # so the algorithm can access that specific path_scoring_randomness variable 
+    # --> app_instance argument
+    def select_path(self, source_as, destination_as, app_instance=None):
 
         retrieved_paths = self._sync_candidates(source_as, destination_as)
         if not retrieved_paths:
@@ -697,10 +731,69 @@ class SapexAlgorithm(PathSelectionAlgorithm):
 
 
     #Step 3: Compute the composite scores S(p,a) for each path
-            #for loop on path dictionary
-        for p in filtered_paths:
-            p.score = ... #apply the detailed formula later
+        # Detect bottlenecks across ALL filtered paths first
+        detected_bottlenecks_list = self.detect_shared_bottlenecks(filtered_paths)
+        weight_sb = 0.1 
+        new_active_set = []
+        #multipliers depending on the state of the path
+        alpha_probe = 0.7 
+        alpha_inactive = 0.4
+        alpha_state = 0 
+        #random multiplier per each app will be created stored in application.py
         
+        #Step 3.1: Calculate the base scores
+        #for loop on path dictionary/list
+        for p in filtered_paths:
+            #initalize weights for each path at the beginning of the iteration
+            p.weight_throughput = 0.1
+            p.weight_packet_loss = -0.1
+            p.weight_rtt = -0.1
+            
+            #Priority to probing data
+            rtt_val = self.get_path_latency(p.router_path)
+            #if there is no probing data yet, then use the current value of the path
+            if rtt_val is None:
+                rtt_val = p.avg_latency
+
+            #p.base_score = (weight_throughput * throughput) + (weight_packet_loss * packet_loss_rate) + (weight_rtt * rtt)
+            base_score = (p.weight_throughput * p.get_avg_throughput()) + (p.weight_packet_loss * p.get_loss_rate()) \
+                + (p.weight_rtt * rtt_val)
+                
+            #Step 3.2: Calculate the SB_penaltys for each path
+            #use detect_shared_bottlenecks(self, active_paths) to get sbl interfaces
+            # weight_sb * ( 
+            # len(common(umcc_shared_bottleneck_interfaces, interfaces_of_path_p)) / len(interfaces_of_path_p))
+            Ep = p.get_interface_ids()
+            shared_interface_count = len(SBL.intersection(Ep))
+            interface_count_of_path = len(Ep)
+            if interface_count_of_path > 0:
+                sb_penalty = (weight_sb * shared_interface_count) / interface_count_of_path
+            else:
+                sb_penalty = 0
+                
+            #Step 3.3: Calculate the diversity bonuses for each path
+            # a helper method, to decouple 
+            div_bonus = self.calculate_diversity_bonus(p, current_active, weight_diversity)
+
+            #Step 4.4: integrate state logic into the scoring
+            if p.state == 'ACTIVE':
+                alpha_state = 1
+            elif p.state == 'PROBING':
+                alpha_state = alpha_probe
+            elif p.state == 'INACTIVE':
+                alpha_state = alpha_inactive    
+            
+            #Step 4.5: final scoring
+            #get the app-specific randomness value for the path selection
+            lambda_rand = app_instance.path_selection_randomness if app_instance else 1
+            final_score = lambda_rand * ((alpha_state * base_score) - sb_penalty + div_bonus)
+            
+            
+            
+
+
+            
+
     #Step 4: Sort paths by descending composite scores (S(p,a))
             #May be merge sort as the default --> O(nlogn) time complexity 
             #Different sorting algorithms could be tested for a comparison
@@ -745,6 +838,8 @@ class SapexAlgorithm(PathSelectionAlgorithm):
     #...
     
     #Step 9: Failure handling and maintenance
+    #if event_type='path_down' occurs then remove that path from the ACTIVE list.
+    #if event_type='path_up' occurs then set that paths' state from ... 
     #...
 
     
@@ -759,7 +854,12 @@ class SapexAlgorithm(PathSelectionAlgorithm):
     #apply the randomized delay so wait: sleep(delay) can be used
     
     
-    
+        # SAVE STATE: This ensures next time we call select_path, 
+        # these paths are treated as "already in use" for the app.
+        self.active_set = new_active_set
+        # change their state attributes to 'ACTIVE' 
+        # ...
+        
                 
                         
                         

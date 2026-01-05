@@ -1,5 +1,6 @@
 # application.py
 from packet import Packet
+import random
 
 class Application:
     def __init__(self, env, app_id, source_host, dest_host, path_selector, flow_config, results_dict, app_registry=None):
@@ -15,12 +16,15 @@ class Application:
         self.app_registry = app_registry
         self.current_path = None
         self.is_path_down = False
+        self.path_scoring_randomness = random.uniform(0.1, 1)
         
     def run(self):
         yield self.env.timeout(self.flow_config['start_time_ms'])
         print(f"[{self.env.now:.2f}] App {self.app_id}: Starting flow from {self.source.node_id} to {self.destination.node_id}")
 
-        path = self.path_selector.select_path(self.source.isd_as, self.destination.isd_as)
+        #When the application requests a path, it must now "introduce itself" to the algorithm 
+        # so the algorithm can access that specific path_scoring_randomness variable
+        path = self.path_selector.select_path(self.source.isd_as, self.destination.isd_as, app_instance=self)
         if not path:
             print(f"[{self.env.now:.2f}] App {self.app_id}: No path found. Stopping.")
             return

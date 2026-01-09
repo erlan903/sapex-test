@@ -1,4 +1,6 @@
 import random
+
+from matplotlib.pylab import partition
 from path_selection import PathSelectionAlgorithm
 
 #To integrate path lists, every path may be handled as objects with the following attributes
@@ -11,6 +13,7 @@ class PathCandidate:
         self.router_path = router_path      # The actual list of router IDs
         self.state = "PROBING"              # INACTIVE, PROBING, ACTIVE, COOLDOWN
         self.score = 0.0                    # S(p,a)
+        self.budget = 50
 
         # Metrics for filtering
         self.latency_history = []
@@ -30,6 +33,8 @@ class PathCandidate:
         self.congestion_start_time = None
         self.shared_bottleneck_interfaces = set()  # Set of interface IDs in shared bottleneck
 
+        self.cooldown_until = 0
+        
     def update_latency(self, latency):
         self.latency_history.append(latency)
         # Keep last 10 measurements
@@ -123,6 +128,8 @@ class SapexAlgorithm(PathSelectionAlgorithm):
         super().__init__(topology)
         self.use_beaconing = use_beaconing
         self.discover_paths(use_graph_traversal=not use_beaconing)
+        
+        self.cooldown_duration = 5000  # in milliseconds
 
         # Dictionary to store our PathCandidate objects
         # Key: tuple(tuple(path_list)), Value: PathCandidate object
@@ -264,6 +271,18 @@ class SapexAlgorithm(PathSelectionAlgorithm):
                         candidate.last_throughput_time = self.env.now if self.env else 0
                 else:
                     candidate.last_throughput_time = self.env.now if self.env else 0
+                
+            is_failing_silently = False
+            
+            if candidate.get_loss_rate() > 0.5:
+                is_failing_silently = True
+                
+            elif candidate.detect_congestion():
+                is_failing_silently = True
+                
+            if is_failing_silently and candidate.state == "ACTIVE":
+                candidate.state = "COOLDOWN"
+                print(f"[{self.env.now if self.env else 0:.2f}] Path {router_path} entering COOLDOWN due to poor performance")
 
     def detect_shared_bottlenecks(self, active_paths):
         """
@@ -448,17 +467,54 @@ class SapexAlgorithm(PathSelectionAlgorithm):
         #Compare the path metrics with those constraints and remove the insufficient ones
         #from the path set (python list of paths)
         #if else logic can be used
+        
+        current_time = self.topology.env.now
+
         filtered_paths = []
         for p in retrieved_paths:
+            
+            if not self.is_path_available(p.router_path):
+                # If the path is physically down (via events), ignore it completely
+                p.state = "INACTIVE"
+                continue
+            
+            if p.state == "COOLDOWN":
+                if current_time < p.cooldown_until:
+                    # Path is still in cooldown, skip it
+                    continue
+                else:
+                    p.state = "PROBING"
+            
             loss_rate = (p.packet_loss_count / p.packets_sent) if p.packets_sent > 0 else 0.0
 
             if p.avg_latency <= self.max_latency and loss_rate <= self.max_loss_rate:
                 filtered_paths.append(p)
             else:
-                p.state = "INACTIVE"
+                p.state = "COOLDOWN"
+                p.cooldown_until = current_time + self.cooldown_duration
+                p.score = 0.0
+            
+        #If strict cooldown filtering removes all paths, allow the 
+        # least bad ones (excluding physically down ones) to avoid total connectivity loss.    
+        if not filtered_paths:
+            available_physically = []
+            for p in retrieved_paths:
+                if self.is_path_available(p.router_path):
+                    available_physically.append(p)
+            if available_physically:
+                filtered_paths = available_physically
+                for p in filtered_paths:
+                    p.state = "PROBING"
+
         #Fallback if strict filtering kills all paths(least-worst)
         if not filtered_paths:
             filtered_paths = retrieved_paths
+            
+        # Refund points of failed paths back to the application budget
+        ...
+        # Replace the failing paths with best PROBING path by score
+        ...
+        
 
         # UMCC: Apply shared bottleneck detection and filtering
         # Step 8: Repeat in case more congestion is located
@@ -540,33 +596,52 @@ class SapexAlgorithm(PathSelectionAlgorithm):
         filtered_paths.sort(key=lambda x: x.score, reverse=True)
         #reverse=True (descending order), take scores of path sobjects as sorting argument
 
-    #Step 5: Group paths into N sized Groups
+    #Step 5: Group paths into N sized Groups --> 
+    # In order to fully see the effect of the partition size, size of the path list 
+    # should be bigger, there should be enough number of paths
+    # Option A: create a new iterable corresponding a partition, but the set of this iterables
+    # need to also traversible or iterable by a loop --> Solution: nested loop 
+    
+        
     
     #Initialize the allocation epoch T_round 
         
                 
         #Step 6: 
         #create an emtpy list (will serve as the path set)
+        active_set = []
+
         #a for loop to to look into each partition in the sorted path list
             #an inner for loop to look into the paths inside the partitions
-
-                #find the 'best' paths among the partitions('best' will be corrected
+        for i in range(0, size(filtered_paths), self.partition_size_N):
+            partition = filtered_paths[i : i + self.partition_size_N]
+            
+            #for path in partition:
+                
+            #find the 'best' paths among the partitions('best' will be corrected
                 #with the relevant details) 
                 #subtract the cost of each best path from the balance of the app
                 #populate the path list with those 'best' paths 
+            # 3. Inner Loop: Find the best AFFORDABLE path in this specific partition
+            for path in partition:
+                # Since 'partition' is sorted, the first path we encounter here
+                # is the highest scoring one. The next is the second highest...
+                
+                if current_budget >= path.cost:
+                    # We found the highest scoring path in this group that we can afford
+                    current_budget -= path.cost
+                    path.state = "ACTIVE"
+                    active_set.append(path)
+                    
+                    # Break here to ensure we only pick ONE path from this partition
+                    # This forces the loop to move to the next partition
+                    break
                 
                 #return the path list 
                 
-        current_budget = self.budget
-        active_set = []
         
-        for candidate in filtered_paths: #simple iteration for now
-            if current_budget >= candidate.cost:
-                current_budget -= candidate.cost
-                candidate.state = "ACTIVE"
-                active_set.append(candidate)
-            else:
-                candidate.state = "INACTIVE"
+        if candidate not in active_set: #simple iteration for now
+            candidate.state = "INACTIVE"
     
     # Step 7-8-9 need to continuosuly watch for failures and react, 
     # so may be while loops or threads might be an option
@@ -578,8 +653,7 @@ class SapexAlgorithm(PathSelectionAlgorithm):
     #...
     
     #Step 9: Failure handling and maintenance
-    #if event_type='path_down' occurs then remove that path from the ACTIVE list.
-    #if event_type='path_up' occurs then set that paths' state from ... 
+
     #...
 
     

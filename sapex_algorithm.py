@@ -13,7 +13,6 @@ class PathCandidate:
         self.router_path = router_path      # The actual list of router IDs
         self.state = "PROBING"              # INACTIVE, PROBING, ACTIVE, COOLDOWN
         self.score = 0.0                    # S(p,a)
-        self.budget = 50
 
         # Metrics for filtering
         self.latency_history = []
@@ -451,80 +450,13 @@ class SapexAlgorithm(PathSelectionAlgorithm):
     # --> app_instance argument
     def select_path(self, source_as, destination_as, app_instance=None):
 
+        current_budget = 0
+        if app_instance:    
+            current_budget = app_instance.budget
+        
         retrieved_paths = self._sync_candidates(source_as, destination_as)
         if not retrieved_paths:
             return None
-
-        # Filter out paths marked as down
-        retrieved_paths = [
-            p for p in retrieved_paths
-            if self.is_path_available(p.router_path)
-        ]
-
-        if not retrieved_paths:
-            return None
-
-        #Compare the path metrics with those constraints and remove the insufficient ones
-        #from the path set (python list of paths)
-        #if else logic can be used
-        
-        current_time = self.topology.env.now
-
-        filtered_paths = []
-        for p in retrieved_paths:
-            
-            if not self.is_path_available(p.router_path):
-                # If the path is physically down (via events), ignore it completely
-                p.state = "INACTIVE"
-                continue
-            
-            if p.state == "COOLDOWN":
-                if current_time < p.cooldown_until:
-                    # Path is still in cooldown, skip it
-                    continue
-                else:
-                    p.state = "PROBING"
-            
-            loss_rate = (p.packet_loss_count / p.packets_sent) if p.packets_sent > 0 else 0.0
-
-            if p.avg_latency <= self.max_latency and loss_rate <= self.max_loss_rate:
-                filtered_paths.append(p)
-            else:
-                p.state = "COOLDOWN"
-                p.cooldown_until = current_time + self.cooldown_duration
-                p.score = 0.0
-            
-        #If strict cooldown filtering removes all paths, allow the 
-        # least bad ones (excluding physically down ones) to avoid total connectivity loss.    
-        if not filtered_paths:
-            available_physically = []
-            for p in retrieved_paths:
-                if self.is_path_available(p.router_path):
-                    available_physically.append(p)
-            if available_physically:
-                filtered_paths = available_physically
-                for p in filtered_paths:
-                    p.state = "PROBING"
-
-        #Fallback if strict filtering kills all paths(least-worst)
-        if not filtered_paths:
-            filtered_paths = retrieved_paths
-            
-        # Refund points of failed paths back to the application budget
-        ...
-        # Replace the failing paths with best PROBING path by score
-        ...
-        
-
-        # UMCC: Apply shared bottleneck detection and filtering
-        # Step 8: Repeat in case more congestion is located
-        if self.enable_umcc:
-            filtered_paths = self.apply_bottleneck_constraints(filtered_paths)
-        
-
-            
-    #Initialize the partition size N for the application    
-
 
     #Step 3: Compute the composite scores S(p,a) for each path
         # Detect bottlenecks across ALL filtered paths first
@@ -583,18 +515,90 @@ class SapexAlgorithm(PathSelectionAlgorithm):
             #get the app-specific randomness value for the path selection
             lambda_rand = app_instance.path_selection_randomness if app_instance else 1
             final_score = lambda_rand * ((alpha_state * base_score) - sb_penalty + div_bonus)
-            
-            
-            
+            p.score = final_score
 
-
-            
 
     #Step 4: Sort paths by descending composite scores (S(p,a))
             #May be merge sort as the default --> O(nlogn) time complexity 
             #Different sorting algorithms could be tested for a comparison
         filtered_paths.sort(key=lambda x: x.score, reverse=True)
         #reverse=True (descending order), take scores of path sobjects as sorting argument
+        
+        current_time = self.topology.env.now
+
+        filtered_paths = []
+        for p in retrieved_paths:
+            
+            if not self.is_path_available(p.router_path):
+                # If the path is physically down (via events), ignore it completely
+                p.state = "INACTIVE"
+                continue
+            
+            if p.state == "COOLDOWN":
+                if current_time < p.cooldown_until:
+                    # Path is still in cooldown, skip it
+                    continue
+                else:
+                    p.state = "PROBING"
+            
+            loss_rate = (p.packet_loss_count / p.packets_sent) if p.packets_sent > 0 else 0.0
+
+            if p.avg_latency <= self.max_latency and loss_rate <= self.max_loss_rate:
+                filtered_paths.append(p)
+            
+            #else if the path is not meeting the constraints, change its state to COOLDOWN 
+            #indication of failure(not hardcoded but based on application's own path info)
+            else:
+                p.state = "COOLDOWN"
+                p.cooldown_until = current_time + self.cooldown_duration
+                path_cost = p.score
+                print(f"[{self.env.now if self.env else 0:.2f}] Path {p.router_path} entering COOLDOWN due to constraint violation")
+                # Refund points of failed paths back to the application budget
+                app_instance.budget = app_instance.budget + path_cost
+                current_budget = app_instance.budget
+                # Replace the failing paths with best PROBING path by score
+                ...
+                
+        # Filter out paths marked as down
+        retrieved_paths = [
+            p for p in retrieved_paths
+            if self.is_path_available(p.router_path)
+        ]
+
+        if not retrieved_paths:
+            return None
+
+        #Compare the path metrics with those constraints and remove the insufficient ones
+        #from the path set (python list of paths)
+        #if else logic can be used
+        
+
+                
+            
+        #If strict cooldown filtering removes all paths, allow the 
+        # least bad ones (excluding physically down ones) to avoid total connectivity loss.    
+        if not filtered_paths:
+            available_physically = []
+            for p in retrieved_paths:
+                if self.is_path_available(p.router_path):
+                    available_physically.append(p)
+            if available_physically:
+                filtered_paths = available_physically
+                for p in filtered_paths:
+                    p.state = "PROBING"
+
+        #Fallback if strict filtering kills all paths(least-worst)
+        if not filtered_paths:
+            filtered_paths = retrieved_paths
+    
+
+        # UMCC: Apply shared bottleneck detection and filtering
+        # Step 8: Repeat in case more congestion is located
+        if self.enable_umcc:
+            filtered_paths = self.apply_bottleneck_constraints(filtered_paths)
+    
+
+
 
     #Step 5: Group paths into N sized Groups --> 
     # In order to fully see the effect of the partition size, size of the path list 
@@ -626,10 +630,13 @@ class SapexAlgorithm(PathSelectionAlgorithm):
             for path in partition:
                 # Since 'partition' is sorted, the first path we encounter here
                 # is the highest scoring one. The next is the second highest...
+                path_cost = path.score
                 
-                if current_budget >= path.cost:
+                if current_budget >= cost:
                     # We found the highest scoring path in this group that we can afford
-                    current_budget -= path.cost
+                    if app_instance:
+                        app_instance.budget = app_instance.budget - path_cost
+                        current_budget = app_instance.budget
                     path.state = "ACTIVE"
                     active_set.append(path)
                     
@@ -643,15 +650,7 @@ class SapexAlgorithm(PathSelectionAlgorithm):
         if candidate not in active_set: #simple iteration for now
             candidate.state = "INACTIVE"
     
-    # Step 7-8-9 need to continuosuly watch for failures and react, 
-    # so may be while loops or threads might be an option
-    
-    #Step 7: Probing
-    #...
-    
-    #Step 8: UMCC
-    #...
-    
+
     #Step 9: Failure handling and maintenance
 
     #...

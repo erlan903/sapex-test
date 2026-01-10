@@ -17,6 +17,7 @@ class Application:
         self.current_path = None
         self.is_path_down = False
         self.path_scoring_randomness = random.uniform(0.1, 1)
+        self.budget = 50 # budget for path selection
         
     def run(self):
         yield self.env.timeout(self.flow_config['start_time_ms'])

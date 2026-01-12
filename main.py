@@ -1,7 +1,7 @@
 # main.py
 import argparse
 from simulation import Simulation
-from path_selection import SapexAlgorithm
+import sapex_algorithm
 # To use your own algorithm, you would import it here, e.g.:
 # from my_sapex_f import SapexAlgorithm
 

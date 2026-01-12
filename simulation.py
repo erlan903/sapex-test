@@ -3,7 +3,7 @@ import simpy
 import json
 from topology import Topology
 from application import Application
-from path_selection import ShortestPathAlgorithm
+from shortest_path_algorithm import ShortestPathAlgorithm
 from events import EventManager
 from app_registry import ApplicationRegistry
 

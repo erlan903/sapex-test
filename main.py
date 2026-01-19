@@ -1,7 +1,7 @@
 # main.py
 import argparse
 from simulation import Simulation
-import sapex_algorithm
+from sapex_algorithm import SapexAlgorithm
 # To use your own algorithm, you would import it here, e.g.:
 # from my_sapex_f import SapexAlgorithm
 

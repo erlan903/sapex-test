@@ -153,6 +153,10 @@ class SapexAlgorithm(PathSelectionAlgorithm):
         self.enable_umcc = enable_umcc
         self.shared_bottlenecks = []  # List of sets of interface IDs that form bottlenecks
         self.bottleneck_representatives = {}  # Maps bottleneck index to the chosen representative path
+
+        self.T_round = 2000  # Allocation epoch in ms 
+        self.delay = 0  # Current jitter delay
+        self.max_delay = self.T_round / 2  # Max delay = T_round/2
     
     #Step 1: Retrieve paths -- Beaconing integration needed
 
@@ -657,24 +661,36 @@ class SapexAlgorithm(PathSelectionAlgorithm):
                 
                 #return the path list 
                 
+                
         
-        if candidate not in active_set: #simple iteration for now
-            candidate.state = "INACTIVE"
+        for candidate in retrieved_paths:
+            if candidate not in active_set: #simple iteration for now
+                candidate.state = "INACTIVE"
+        
+        # SAVE STATE: To ensure next time we call select_path, 
+        # these paths are treated as "already in use" for the app.
+        self.active_set = active_set
+        # change their state attributes to 'ACTIVE' 
+        for p in active_set:
+            p.state = "ACTIVE"
 
     
-    #Step 10: Jitter
-    # Change the delay randomly (assign a random number) whenever 
-    # ACTIVE path list changes
-        # 0 < delay <= T_round/2
-        # Randomly select one of the ACTIVE paths to distribute load
-        if active_set:
-            return random.choice(active_set).router_path        
+        # Step 10: Jitter and load distribution
+        # Check if the active set has changed since last epoch
+        if set(active_set) != set(self.active_set):
+            # Active set has changed - apply jitter delay
+            self.delay = random.uniform(0, self.max_delay)
+            print(f"[{self.env.now if self.env else 0:.2f}] Active path set changed. Applying jitter delay of {self.delay:.2f} ms")
+            yield self.env.timeout(self.delay) if self.env else None
+            
+        else:
+            # Active set unchanged - use minimum delay
+            self.delay = 0
         
-    #apply the randomized delay so wait: sleep(delay) can be used
-    
-    
-        # SAVE STATE: This ensures next time we call select_path, 
-        # these paths are treated as "already in use" for the app.
-        self.active_set = new_active_set
-        # change their state attributes to 'ACTIVE' 
-        # ...
+
+        # Return a randomly selected path from the active set for load distribution
+        if active_set:
+            return random.choice(active_set).router_path
+        
+        return None
+            

@@ -556,8 +556,19 @@ class SapexAlgorithm(PathSelectionAlgorithm):
                 # Refund points of failed paths back to the application budget
                 app_instance.budget = app_instance.budget + path_cost
                 current_budget = app_instance.budget
+                
                 # Replace the failing paths with best PROBING path by score
-                ...
+                # collect all probing paths from retrieved paths
+                probing_paths = [path for path in retrieved_paths if path.state == "PROBING"]
+                # sort the probing paths by score
+                probing_paths.sort(key=lambda x: x.score, reverse=True)
+                if probing_paths:
+                    best_probing = probing_paths[0]
+                    #set the best probing path state to ACTIVE
+                    best_probing.state = "ACTIVE"
+                    #add the best probing path to filtered paths
+                    filtered_paths.append(best_probing)
+                    print(f"[{self.env.now if self.env else 0:.2f}] Promoting probing path {best_probing.router_path} to ACTIVE to replace failed path")
                 
         # Filter out paths marked as down
         retrieved_paths = [
@@ -649,11 +660,6 @@ class SapexAlgorithm(PathSelectionAlgorithm):
         
         if candidate not in active_set: #simple iteration for now
             candidate.state = "INACTIVE"
-    
-
-    #Step 9: Failure handling and maintenance
-
-    #...
 
     
     #Step 10: Jitter

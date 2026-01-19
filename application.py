@@ -18,6 +18,7 @@ class Application:
         self.is_path_down = False
         self.path_scoring_randomness = random.uniform(0.1, 1)
         self.budget = 50 # budget for path selection
+        self.maintenance_interval = 5000  # interval for periodic maintenance (in ms)
         
     def run(self):
         yield self.env.timeout(self.flow_config['start_time_ms'])
@@ -39,6 +40,9 @@ class Application:
 
         # Start a process to listen for incoming packets
         self.env.process(self.receive_handler())
+
+        # Start periodic maintenance to re-evaluate path selection
+        self.env.process(self._periodic_maintenance())
 
         # Send data
         data_to_send_bytes = self.flow_config['data_size_kb'] * 1024
@@ -132,3 +136,23 @@ class Application:
             self.is_path_down = False
         else:
             print(f"[{self.env.now:.2f}] App {self.app_id}: No alternative path available")
+
+    def _periodic_maintenance(self):
+        """Periodically re-evaluate path selection"""
+        yield self.env.timeout(self.maintenance_interval)
+        
+        while True:
+            # Call select_path again with current app instance
+            better_path = self.path_selector.select_path(
+                self.source.isd_as,
+                self.destination.isd_as,
+                app_instance=self
+            )
+            
+            # Change the path if different path is selected
+            if better_path and better_path != self.current_path:
+                self.current_path = better_path
+                if self.app_registry:
+                    self.app_registry.register_path_usage(self, better_path)
+            
+            yield self.env.timeout(self.maintenance_interval)

@@ -5,7 +5,7 @@ import time
 class HopInfo:
     """Represents AS-level hop information in a Path Construction Beacon (PCB)"""
     def __init__(self, as_id, router_id, ingress_if=None, egress_if=None, link_metrics=None):
-        self.as_id = as_id  # ISD-AS identifier (e.g., "1-ff00:0:110")
+        self.as_id = as_id  # ISD-AS identifier (e.g., "71-20965")
         self.router_id = router_id  # Border router ID (e.g., "br1-110-1")
         self.ingress_if = ingress_if  # Interface where PCB entered this AS
         self.egress_if = egress_if  # Interface where PCB exits this AS
@@ -53,6 +53,16 @@ class BeaconPacket(Packet):
     def get_router_path(self):
         """Get the list of router IDs in this beacon's path (for data forwarding)"""
         return [hop.router_id for hop in self.hops]
+
+    def get_total_latency(self):
+        """Get total latency across hops based on link metrics."""
+        total = 0
+        for hop in self.hops:
+            if hop.link_metrics and "latency" in hop.link_metrics:
+                latency = hop.link_metrics.get("latency")
+                if latency is not None:
+                    total += latency
+        return total
 
     def clone(self):
         """Create a deep copy of this beacon"""

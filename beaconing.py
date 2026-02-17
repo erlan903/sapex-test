@@ -11,9 +11,9 @@ class BeaconingProcess:
         self.origin_as = self.extract_as_from_router_id(start_router.node_id)
 
     def extract_as_from_router_id(self, router_id):
-        """Extract AS ID from router ID. E.g., '1-ff00:0:110-br1-110-1' -> '1-ff00:0:110'"""
-        # Format: ISD-ASff00:AS_ID-router_name
-        # Example: "1-ff00:0:110-br1-110-1" -> "1-ff00:0:110"
+        """Extract AS ID from router ID. E.g., '71-20965-br-fra-1' -> '71-20965'"""
+        # Format: ISD-AS-router_name
+        # Example: "71-20965-br-fra-1" -> "71-20965"
         # The AS part is everything before the last occurrence of a router name pattern
         # We can identify AS by looking for the pattern before "-br"
         if '-br' in router_id:

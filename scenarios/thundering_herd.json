@@ -1,0 +1,104 @@
+{
+    "scenario_name": "thundering_herd",
+    "description": "Thundering Herd Oscillation: End-hosts independently optimize for performance and converge on the same 'best' path (the direct GEANT-Internet2 core link br-fra-2 <-> br-i2-2, ~85ms latency). Progressive waves of EU->US flows all select this path, causing congestion. At each 5s maintenance cycle, algorithms detect degradation and simultaneously switch flows to alternatives (e.g., via GEANT->KISTI->Internet2 at ~270ms). The original path clears, the alternative congests, and flows switch back — creating oscillation. Later waves test whether late-arriving flows perpetuate the herd or if the algorithm stabilizes.",
+    "duration_ms": 60000,
+    "flows": [
+        {
+            "name": "Wave1-OVGU-to-CMU",
+            "comment": "Wave 1 (t=3s): 4 GEANT-Frankfurt-hub EU sources -> 4 different US destinations. All independently discover the direct GEANT-Internet2 path (~85ms) is 'best' and select it, forming the initial herd on br-fra-2 <-> br-i2-2",
+            "source": "71-2:0:1a,10.71.1.1",
+            "destination": "71-2:0:30,10.71.3.1",
+            "start_time_ms": 3000,
+            "data_size_kb": 35000
+        },
+        {
+            "name": "Wave1-TUB-to-MIT",
+            "source": "71-2:0:1b,10.71.1.11",
+            "destination": "71-2:0:31,10.71.3.11",
+            "start_time_ms": 3000,
+            "data_size_kb": 35000
+        },
+        {
+            "name": "Wave1-LMU-to-Columbia",
+            "source": "71-2:0:1c,10.71.1.21",
+            "destination": "71-2:0:32,10.71.3.21",
+            "start_time_ms": 3000,
+            "data_size_kb": 35000
+        },
+        {
+            "name": "Wave1-KIT-to-USC",
+            "source": "71-2:0:1d,10.71.1.31",
+            "destination": "71-2:0:33,10.71.3.31",
+            "start_time_ms": 3000,
+            "data_size_kb": 35000
+        },
+        {
+            "name": "Wave2-ETHZ-to-CMU",
+            "comment": "Wave 2 (t=6s): SWITCH-routed EU sources also independently select the 'best' GEANT->Internet2 path. Congestion on br-fra-2 now from 6 concurrent flows — first maintenance cycle (t=8s) should trigger mass path switching",
+            "source": "71-2:0:25,10.71.2.1",
+            "destination": "71-2:0:30,10.71.3.1",
+            "start_time_ms": 6000,
+            "data_size_kb": 35000
+        },
+        {
+            "name": "Wave2-Sorbonne-to-Columbia",
+            "source": "71-2:0:26,10.71.2.11",
+            "destination": "71-2:0:32,10.71.3.21",
+            "start_time_ms": 6000,
+            "data_size_kb": 35000
+        },
+        {
+            "name": "Wave3-KAIST-to-CMU",
+            "comment": "Wave 3 (t=10s): Asia->US flows arrive during expected first oscillation. Their 'best' path is direct KISTI->Internet2 (~120ms, br-kisti-2 <-> br-i2-2), but if the EU herd has migrated to GEANT->KISTI->Internet2, the KISTI core is now loaded — creating cross-region oscillation coupling",
+            "source": "71-2:0:40,10.71.4.1",
+            "destination": "71-2:0:30,10.71.3.1",
+            "start_time_ms": 10000,
+            "data_size_kb": 25000
+        },
+        {
+            "name": "Wave3-NUS-to-MIT",
+            "source": "71-2:0:41,10.71.4.11",
+            "destination": "71-2:0:31,10.71.3.11",
+            "start_time_ms": 10000,
+            "data_size_kb": 25000
+        },
+        {
+            "name": "Wave3-UTokyo-to-USC",
+            "source": "71-2:0:42,10.71.4.21",
+            "destination": "71-2:0:33,10.71.3.31",
+            "start_time_ms": 10000,
+            "data_size_kb": 25000
+        },
+        {
+            "name": "Wave4-OVGU-to-Columbia",
+            "comment": "Wave 4 (t=20s): Late arrivals during peak oscillation phase (~t=15-25s). Tests whether new flows join whichever path the herd is currently on (amplifying oscillation) or if the algorithm's scoring diversifies placement",
+            "source": "71-2:0:1a,10.71.1.2",
+            "destination": "71-2:0:32,10.71.3.21",
+            "start_time_ms": 20000,
+            "data_size_kb": 20000
+        },
+        {
+            "name": "Wave4-TUB-to-CMU",
+            "source": "71-2:0:1b,10.71.1.11",
+            "destination": "71-2:0:30,10.71.3.1",
+            "start_time_ms": 20000,
+            "data_size_kb": 20000
+        },
+        {
+            "name": "Wave5-KIT-to-MIT",
+            "comment": "Wave 5 (t=35s): Stabilization probes. By now a good algorithm (SAPEX with UMCC) should have distributed load across paths. A naive greedy algorithm will still be oscillating between the GEANT-Internet2 direct and GEANT-KISTI-Internet2 alternative",
+            "source": "71-2:0:1d,10.71.1.31",
+            "destination": "71-2:0:31,10.71.3.11",
+            "start_time_ms": 35000,
+            "data_size_kb": 15000
+        },
+        {
+            "name": "Wave5-ETHZ-to-USC",
+            "source": "71-2:0:25,10.71.2.1",
+            "destination": "71-2:0:33,10.71.3.31",
+            "start_time_ms": 35000,
+            "data_size_kb": 15000
+        }
+    ],
+    "events": []
+}

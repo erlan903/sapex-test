@@ -1,0 +1,12 @@
+{
+    "topology": "topology.json",
+    "traffic": "traffic.json",
+    "algorithm": "sapex",
+    "output_dir": "results",
+    "experiment_name": "scenario_A",
+    "parameters": {
+        "packet_size_kb": 10,
+        "lambda": 1.0,
+        "cooldown_ms": 100
+    }
+}

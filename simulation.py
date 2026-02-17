@@ -14,6 +14,9 @@ class Simulation:
         self.path_selection_algorithm = algorithm_class(self.topology)
         self.results = {"packet_loss": 0, "latencies": []}
 
+        # Metrics collector (will be set by main.py if needed)
+        self.metrics_collector = None
+
         # Application registry for path-app tracking
         self.app_registry = ApplicationRegistry()
 
@@ -83,7 +86,8 @@ class Simulation:
                     self.path_selection_algorithm,
                     flow,
                     self.results,
-                    self.app_registry
+                    self.app_registry,
+                    metrics_collector=self.metrics_collector
                 )
                 self.env.process(app.run())
             else:

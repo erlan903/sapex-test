@@ -1,0 +1,15 @@
+{
+  "timestamp": "20260217_092803",
+  "total_experiments": 1,
+  "successful": 0,
+  "failed": 1,
+  "timeout": 0,
+  "errors": 0,
+  "experiments": [
+    {
+      "experiment": "sapex__scenario_B.json__small__np1000_tr2000_cd5000_ld0.5_b100",
+      "status": "failed",
+      "returncode": 1
+    }
+  ]
+}

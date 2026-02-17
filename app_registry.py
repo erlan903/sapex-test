@@ -96,3 +96,8 @@ class ApplicationRegistry:
         """
         path_tuple = tuple(router_path)
         return self.path_to_apps.get(path_tuple, set()).copy()
+
+
+class AppRegistry(ApplicationRegistry):
+    """Compatibility alias for ApplicationRegistry."""
+    pass

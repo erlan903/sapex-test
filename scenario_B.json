@@ -1,0 +1,12 @@
+{
+    "topology": "topologies/sciera_large.json",
+    "traffic": "traffic_sciera_large.json",
+    "algorithm": "sapex",
+    "output_dir": "results",
+    "experiment_name": "scenario_B_sciera_large",
+    "parameters": {
+        "packet_size_kb": 10,
+        "lambda": 1.0,
+        "cooldown_ms": 100
+    }
+}

@@ -100,14 +100,14 @@ python main.py --topology my_topology.json --traffic my_traffic.json
 ```
 Path discovery via beaconing is enabled. Paths will be discovered through beacon propagation.
 Starting beaconing process...
-[0.00] Core AS 1-ff00:0:110 (router 1-ff00:0:110-br1-110-1) sending beacon.
-[10.00] AS 1-ff00:0:111 registered path from 1-ff00:0:110: ['1-ff00:0:110-br1-110-1', '1-ff00:0:111-br1-111-1']
-[20.00] AS 1-ff00:0:112 registered path from 1-ff00:0:110: ['1-ff00:0:110-br1-110-1', '1-ff00:0:112-br1-112-1']
-[20.00] Created combined path 1-ff00:0:111 -> 1-ff00:0:112: ['1-ff00:0:111-br1-111-1', '1-ff00:0:110-br1-110-1', '1-ff00:0:112-br1-112-1']
+[0.00] Core AS 71-20965 (router 71-20965-br-fra-1) sending beacon.
+[10.00] AS 71-2:0:1a registered path from 71-20965: ['71-20965-br-fra-1', '71-2:0:1a-br-ovgu-1']
+[20.00] AS 71-2:0:25 registered path from 71-20965: ['71-20965-br-fra-1', '71-2:0:25-br-ethz-1']
+[20.00] Created combined path 71-2:0:1a -> 71-2:0:25: ['71-2:0:1a-br-ovgu-1', '71-20965-br-fra-1', '71-2:0:25-br-ethz-1']
 
 All available paths discovered:
-  Paths from 1-ff00:0:110 to 1-ff00:0:111:
-    1: 1-ff00:0:110-br1-110-1 -> 1-ff00:0:111-br1-111-1
+  Paths from 71-20965 to 71-2:0:1a:
+    1: 71-20965-br-fra-1 -> 71-2:0:1a-br-ovgu-1
   ...
 
 --- Simulation Results ---
@@ -222,14 +222,14 @@ Define the network structure with ASes, routers, hosts, and links:
 
 ```json
 {
-  "1-ff00:0:110": {
+  "71-20965": {
     "core": true,
     "border_routers": {
-      "br1-110-1": {
+      "br-fra-1": {
         "interfaces": [
           {
-            "isd_as": "1-ff00:0:111",
-            "neighbor_router": "br1-111-1",
+            "isd_as": "71-2:0:1a",
+            "neighbor_router": "br-ovgu-1",
             "latency_ms": 10,
             "bandwidth_mbps": 100
           }
@@ -247,7 +247,7 @@ Define the network structure with ASes, routers, hosts, and links:
 
 #### Topology Format
 
-- **AS Identifier**: `ISD-ASff00:ASN` format (e.g., `1-ff00:0:110`)
+- **AS Identifier**: `ISD-AS` format (e.g., `71-20965`)
 - **Core Flag**: `"core": true` for core ASes, `false` for non-core
 - **Border Routers**: Dictionary of router names to interface configurations
 - **Interfaces**: Define links to neighboring ASes with latency and bandwidth
@@ -263,8 +263,8 @@ Define traffic flows between hosts:
   "flows": [
     {
       "name": "WebServerTraffic",
-      "source": "1-ff00:0:111,10.0.0.5",
-      "destination": "1-ff00:0:112,172.16.5.5",
+      "source": "71-2:0:1a,10.0.0.5",
+      "destination": "71-2:0:25,172.16.5.5",
       "start_time_ms": 1000,
       "data_size_kb": 5000
     }
@@ -304,7 +304,7 @@ class MyCustomAlgorithm(PathSelectionAlgorithm):
         Select the best path from source to destination AS.
 
         Args:
-            source_as: Source AS identifier (e.g., "1-ff00:0:111")
+            source_as: Source AS identifier (e.g., "71-2:0:1a")
             destination_as: Destination AS identifier
 
         Returns:
@@ -437,14 +437,14 @@ Traffic flows from AS 111 to AS 112 through the core AS 110.
 Add a new AS to `topology.json`:
 
 ```json
-"1-ff00:0:113": {
+"71-2:0:1b": {
   "core": false,
   "border_routers": {
-    "br1-113-1": {
+    "br-tub-1": {
       "interfaces": [
         {
-          "isd_as": "1-ff00:0:110",
-          "neighbor_router": "br1-110-1",
+          "isd_as": "71-20965",
+          "neighbor_router": "br-fra-1",
           "latency_ms": 15,
           "bandwidth_mbps": 75
         }
@@ -462,15 +462,15 @@ Add a new AS to `topology.json`:
 Update the core AS to include the new link:
 
 ```json
-"1-ff00:0:110": {
+"71-20965": {
   "core": true,
   "border_routers": {
-    "br1-110-1": {
+    "br-fra-1": {
       "interfaces": [
         // ... existing interfaces ...
         {
-          "isd_as": "1-ff00:0:113",
-          "neighbor_router": "br1-113-1",
+          "isd_as": "71-2:0:1b",
+          "neighbor_router": "br-tub-1",
           "latency_ms": 15,
           "bandwidth_mbps": 75
         }
@@ -514,15 +514,15 @@ Configure concurrent flows in `traffic.json`:
   "flows": [
     {
       "name": "Flow1",
-      "source": "1-ff00:0:111,10.0.0.5",
-      "destination": "1-ff00:0:112,172.16.5.5",
+      "source": "71-2:0:1a,10.0.0.5",
+      "destination": "71-2:0:25,172.16.5.5",
       "start_time_ms": 1000,
       "data_size_kb": 5000
     },
     {
       "name": "Flow2",
-      "source": "1-ff00:0:112,172.16.5.5",
-      "destination": "1-ff00:0:111,10.0.0.5",
+      "source": "71-2:0:25,172.16.5.5",
+      "destination": "71-2:0:1a,10.0.0.5",
       "start_time_ms": 2000,
       "data_size_kb": 3000
     }
@@ -593,8 +593,8 @@ The `path_store` dictionary structure:
 
 ```python
 {
-    ("1-ff00:0:111", "1-ff00:0:112"): [
-        ["1-ff00:0:111-br1-111-1", "1-ff00:0:110-br1-110-1", "1-ff00:0:112-br1-112-1"],
+    ("71-2:0:1a", "71-2:0:25"): [
+        ["71-2:0:1a-br-ovgu-1", "71-20965-br-fra-1", "71-2:0:25-br-ethz-1"],
         # Additional paths if available
     ],
     # More AS pairs...
@@ -687,8 +687,8 @@ Add events to your `traffic.json`:
   "flows": [
     {
       "name": "WebServerTraffic",
-      "source": "1-ff00:0:111,10.0.0.5",
-      "destination": "1-ff00:0:112,172.16.5.5",
+      "source": "71-2:0:1a,10.0.0.5",
+      "destination": "71-2:0:25,172.16.5.5",
       "start_time_ms": 1000,
       "data_size_kb": 5000
     }
@@ -697,13 +697,13 @@ Add events to your `traffic.json`:
     {
       "type": "path_down",
       "time_ms": 3000,
-      "path": ["1-ff00:0:111-br1-111-1", "1-ff00:0:110-br1-110-1", "1-ff00:0:112-br1-112-1"],
+      "path": ["71-2:0:1a-br-ovgu-1", "71-20965-br-fra-1", "71-2:0:25-br-ethz-1"],
       "description": "Primary path failure - simulating link congestion"
     },
     {
       "type": "path_up",
       "time_ms": 7000,
-      "path": ["1-ff00:0:111-br1-111-1", "1-ff00:0:110-br1-110-1", "1-ff00:0:112-br1-112-1"],
+      "path": ["71-2:0:1a-br-ovgu-1", "71-20965-br-fra-1", "71-2:0:25-br-ethz-1"],
       "description": "Primary path recovery"
     }
   ]
@@ -729,7 +729,7 @@ Add events to your `traffic.json`:
 Paths must be specified as complete router sequences in the format `"ISD-AS-router"`:
 
 ```json
-["1-ff00:0:111-br1-111-1", "1-ff00:0:110-br1-110-1", "1-ff00:0:112-br1-112-1"]
+["71-2:0:1a-br-ovgu-1", "71-20965-br-fra-1", "71-2:0:25-br-ethz-1"]
 ```
 
 To find valid paths, run the simulation first and check the "All available paths discovered" output.
@@ -856,23 +856,23 @@ def is_path_available(self, router_path)   # Check availability
 When a path failure event occurs, you'll see output like:
 
 ```
-[3000.00] EVENT: Path down - ['1-ff00:0:111-br1-111-1', '1-ff00:0:110-br1-110-1', '1-ff00:0:112-br1-112-1']
+[3000.00] EVENT: Path down - ['71-2:0:1a-br-ovgu-1', '71-20965-br-fra-1', '71-2:0:25-br-ethz-1']
 [3000.00]   Description: Primary path failure - simulating link congestion
-Marked path DOWN: ['1-ff00:0:111-br1-111-1', '1-ff00:0:110-br1-110-1', '1-ff00:0:112-br1-112-1']
-Affected AS pairs: [('1-ff00:0:111', '1-ff00:0:112')]
-[3000.00]   Affected AS pairs: [('1-ff00:0:111', '1-ff00:0:112')]
+Marked path DOWN: ['71-2:0:1a-br-ovgu-1', '71-20965-br-fra-1', '71-2:0:25-br-ethz-1']
+Affected AS pairs: [('71-2:0:1a', '71-2:0:25')]
+[3000.00]   Affected AS pairs: [('71-2:0:1a', '71-2:0:25')]
   Notifying 1 application(s) using this path
 [3000.00] App App-WebServerTraffic: Path down notification received
-[3000.00] App App-WebServerTraffic: Switched to new path: 1-ff00:0:111-br1-111-1 -> 1-ff00:0:112-br1-112-1
+[3000.00] App App-WebServerTraffic: Switched to new path: 71-2:0:1a-br-ovgu-1 -> 71-2:0:25-br-ethz-1
 ```
 
 If a path recovery event occurs:
 
 ```
-[7000.00] EVENT: Path up - ['1-ff00:0:111-br1-111-1', '1-ff00:0:110-br1-110-1', '1-ff00:0:112-br1-112-1']
+[7000.00] EVENT: Path up - ['71-2:0:1a-br-ovgu-1', '71-20965-br-fra-1', '71-2:0:25-br-ethz-1']
 [7000.00]   Description: Primary path recovery
-Marked path UP: ['1-ff00:0:111-br1-111-1', '1-ff00:0:110-br1-110-1', '1-ff00:0:112-br1-112-1']
-Affected AS pairs: [('1-ff00:0:111', '1-ff00:0:112')]
+Marked path UP: ['71-2:0:1a-br-ovgu-1', '71-20965-br-fra-1', '71-2:0:25-br-ethz-1']
+Affected AS pairs: [('71-2:0:1a', '71-2:0:25')]
 ```
 
 ### Testing Scenarios
@@ -1245,8 +1245,8 @@ When probing is enabled, you'll see:
 
 ```
 All available paths discovered:
-  Paths from 1-ff00:0:111 to 1-ff00:0:112:
-    1: 1-ff00:0:111-br1-111-1 -> 1-ff00:0:110-br1-110-1 -> 1-ff00:0:112-br1-112-1
+  Paths from 71-2:0:1a to 71-2:0:25:
+    1: 71-2:0:1a-br-ovgu-1 -> 71-20965-br-fra-1 -> 71-2:0:25-br-ethz-1
 
 Path probing enabled with 1000ms interval
 
@@ -1454,25 +1454,25 @@ Both paths (111→110→113 and 111→112→113) might share the link 110→113.
 **topology.json** (shared bottleneck):
 ```json
 {
-  "1-ff00:0:110": {
+  "71-20965": {
     "core": true,
     "border_routers": {
-      "br1-110-1": {
+      "br-fra-1": {
         "interfaces": [
-          {"isd_as": "1-ff00:0:111", "neighbor_router": "br1-111-1", "latency_ms": 5, "bandwidth_mbps": 100},
-          {"isd_as": "1-ff00:0:113", "neighbor_router": "br1-113-1", "latency_ms": 10, "bandwidth_mbps": 50}
+          {"isd_as": "71-2:0:1a", "neighbor_router": "br-ovgu-1", "latency_ms": 5, "bandwidth_mbps": 100},
+          {"isd_as": "71-2:0:1b", "neighbor_router": "br-tub-1", "latency_ms": 10, "bandwidth_mbps": 50}
         ]
       }
     },
     "hosts": {"host1": {"addr": "10.0.0.1"}}
   },
-  "1-ff00:0:112": {
+  "71-2:0:25": {
     "core": true,
     "border_routers": {
-      "br1-112-1": {
+      "br-ethz-1": {
         "interfaces": [
-          {"isd_as": "1-ff00:0:111", "neighbor_router": "br1-111-1", "latency_ms": 5, "bandwidth_mbps": 100},
-          {"isd_as": "1-ff00:0:113", "neighbor_router": "br1-113-1", "latency_ms": 10, "bandwidth_mbps": 50}
+          {"isd_as": "71-2:0:1a", "neighbor_router": "br-ovgu-1", "latency_ms": 5, "bandwidth_mbps": 100},
+          {"isd_as": "71-2:0:1b", "neighbor_router": "br-tub-1", "latency_ms": 10, "bandwidth_mbps": 50}
         ]
       }
     },
@@ -1492,15 +1492,15 @@ Use events to create congestion on the shared bottleneck:
   "flows": [
     {
       "name": "Flow1",
-      "source": "1-ff00:0:111,10.0.0.5",
-      "destination": "1-ff00:0:113,172.16.5.5",
+      "source": "71-2:0:1a,10.0.0.5",
+      "destination": "71-2:0:1b,172.16.5.5",
       "start_time_ms": 1000,
       "data_size_kb": 10000
     },
     {
       "name": "Flow2",
-      "source": "1-ff00:0:111,10.0.0.6",
-      "destination": "1-ff00:0:113,172.16.5.6",
+      "source": "71-2:0:1a,10.0.0.6",
+      "destination": "71-2:0:1b,172.16.5.6",
       "start_time_ms": 1000,
       "data_size_kb": 10000
     }
@@ -1521,8 +1521,8 @@ When UMCC detects a shared bottleneck, you'll see output like:
 
 ```
 [5000.00] UMCC: Detected congestion on 2 paths
-[5000.00] UMCC: Identified shared bottleneck interfaces: {'1-ff00:0:113-br1-113-1'}
-[5000.00] UMCC: Excluding path ['1-ff00:0:111-br1-111-1', '1-ff00:0:112-br1-112-1', '1-ff00:0:113-br1-113-1'] due to shared bottleneck
+[5000.00] UMCC: Identified shared bottleneck interfaces: {'71-2:0:1b-br-tub-1'}
+[5000.00] UMCC: Excluding path ['71-2:0:1a-br-ovgu-1', '71-2:0:25-br-ethz-1', '71-2:0:1b-br-tub-1'] due to shared bottleneck
 [5000.00] App App-Flow2: Switched to alternative path
 ```
 
@@ -1562,7 +1562,7 @@ def get_interface_ids(self):
     """Extract interface IDs from router path"""
     interface_ids = set()
     for router_id in self.router_path:
-        # Router ID format: "1-ff00:0:110-br1-110-1"
+        # Router ID format: "71-20965-br-fra-1"
         # This serves as the interface ID
         interface_ids.add(router_id)
     return interface_ids
@@ -1649,8 +1649,8 @@ UMCC handles multiple independent bottlenecks:
 # Step 8: Repeat for additional congestion
 bottlenecks = detect_shared_bottlenecks(filtered_paths)
 # Returns: [
-#     {'1-ff00:0:110-br1-110-1'},  # Bottleneck 1
-#     {'1-ff00:0:112-br1-112-2'}   # Bottleneck 2
+#     {'71-20965-br-fra-1'},  # Bottleneck 1
+#     {'71-2:0:25-br-ethz-2'}   # Bottleneck 2
 # ]
 ```
 

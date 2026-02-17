@@ -3,8 +3,8 @@
     "flows": [
         {
             "name": "WebServerTraffic",
-            "source": "1-ff00:0:111,10.0.0.5",
-            "destination": "1-ff00:0:112,172.16.5.5",
+            "source": "71-2:0:1a,10.0.0.5",
+            "destination": "71-2:0:25,172.16.5.5",
             "start_time_ms": 1000,
             "data_size_kb": 5000
         }
@@ -13,13 +13,13 @@
         {
             "type": "path_down",
             "time_ms": 3000,
-            "path": ["1-ff00:0:111-br1-111-1", "1-ff00:0:110-br1-110-1", "1-ff00:0:112-br1-112-1"],
+            "path": ["71-2:0:1a-br-ovgu-1", "71-20965-br-fra-1", "71-2:0:25-br-ethz-1"],
             "description": "Primary path failure - simulating link congestion"
         },
         {
             "type": "path_up",
             "time_ms": 7000,
-            "path": ["1-ff00:0:111-br1-111-1", "1-ff00:0:110-br1-110-1", "1-ff00:0:112-br1-112-1"],
+            "path": ["71-2:0:1a-br-ovgu-1", "71-20965-br-fra-1", "71-2:0:25-br-ethz-1"],
             "description": "Primary path recovery"
         }
     ]

@@ -1,0 +1,124 @@
+{
+    "scenario_name": "shared_bottleneck",
+    "description": "SCIERA Shared Bottleneck: Progressive flow build-up on the GEANT-KISTI core link (br-fra-2 <-> br-kisti-2). 12 flows from EU and US converge on this single segment. An Internet2-KISTI link failure at t=15s forces 4 additional US flows through the already congested GEANT-KISTI path. Tests algorithm ability to detect shared congestion and redistribute flows to alternative routes (e.g., via Internet2 core).",
+    "duration_ms": 50000,
+    "flows": [
+        {
+            "name": "SB-OVGU-to-KAIST",
+            "comment": "Phase 1: Initial EU->Asia flows (3 flows, each to a different Asia leaf)",
+            "source": "71-2:0:1a,10.71.1.1",
+            "destination": "71-2:0:40,10.71.4.1",
+            "start_time_ms": 2500,
+            "data_size_kb": 50000
+        },
+        {
+            "name": "SB-TUB-to-NUS",
+            "source": "71-2:0:1b,10.71.1.11",
+            "destination": "71-2:0:41,10.71.4.11",
+            "start_time_ms": 2500,
+            "data_size_kb": 50000
+        },
+        {
+            "name": "SB-LMU-to-UTokyo",
+            "source": "71-2:0:1c,10.71.1.21",
+            "destination": "71-2:0:42,10.71.4.21",
+            "start_time_ms": 2500,
+            "data_size_kb": 50000
+        },
+        {
+            "name": "SB-KIT-to-NUS",
+            "comment": "Phase 2: More EU->Asia flows including SWITCH-routed sources (total 6 on GEANT-KISTI core)",
+            "source": "71-2:0:1d,10.71.1.31",
+            "destination": "71-2:0:41,10.71.4.11",
+            "start_time_ms": 5000,
+            "data_size_kb": 45000
+        },
+        {
+            "name": "SB-ETHZ-to-KAIST",
+            "comment": "Via SWITCH (71-559) -> GEANT (71-20965) -> KISTI (71-1781)",
+            "source": "71-2:0:25,10.71.2.1",
+            "destination": "71-2:0:40,10.71.4.1",
+            "start_time_ms": 5000,
+            "data_size_kb": 45000
+        },
+        {
+            "name": "SB-Sorbonne-to-UTokyo",
+            "comment": "Via GEANT Paris PoP (71-20965) -> GEANT Frankfurt -> KISTI (71-1781)",
+            "source": "71-2:0:26,10.71.2.11",
+            "destination": "71-2:0:42,10.71.4.21",
+            "start_time_ms": 5000,
+            "data_size_kb": 45000
+        },
+        {
+            "name": "SB-KAIST-to-OVGU",
+            "comment": "Phase 3: Reverse Asia->EU flows create bidirectional pressure on shared core link",
+            "source": "71-2:0:40,10.71.4.1",
+            "destination": "71-2:0:1a,10.71.1.1",
+            "start_time_ms": 8000,
+            "data_size_kb": 35000
+        },
+        {
+            "name": "SB-UTokyo-to-LMU",
+            "source": "71-2:0:42,10.71.4.21",
+            "destination": "71-2:0:1c,10.71.1.21",
+            "start_time_ms": 8000,
+            "data_size_kb": 35000
+        },
+        {
+            "name": "SB-CMU-to-NUS",
+            "comment": "Phase 4: US->Asia flows (initially via direct Internet2-KISTI link, not on GEANT core yet)",
+            "source": "71-2:0:30,10.71.3.1",
+            "destination": "71-2:0:41,10.71.4.11",
+            "start_time_ms": 10000,
+            "data_size_kb": 35000
+        },
+        {
+            "name": "SB-MIT-to-UTokyo",
+            "source": "71-2:0:31,10.71.3.11",
+            "destination": "71-2:0:42,10.71.4.21",
+            "start_time_ms": 10000,
+            "data_size_kb": 35000
+        },
+        {
+            "name": "SB-Columbia-to-KAIST",
+            "comment": "Phase 5: More US->Asia flows (will be forced onto GEANT core after t=15s event)",
+            "source": "71-2:0:32,10.71.3.21",
+            "destination": "71-2:0:40,10.71.4.1",
+            "start_time_ms": 12000,
+            "data_size_kb": 35000
+        },
+        {
+            "name": "SB-USC-to-NUS",
+            "source": "71-2:0:33,10.71.3.31",
+            "destination": "71-2:0:41,10.71.4.11",
+            "start_time_ms": 12000,
+            "data_size_kb": 35000
+        }
+    ],
+    "events": [
+        {
+            "type": "path_down",
+            "time_ms": 15000,
+            "path": ["71-1781-br-kisti-2", "71-11537-br-i2-2"],
+            "description": "Internet2-KISTI direct link fails: 4 US->Asia flows forced through GEANT->KISTI core, pushing shared bottleneck from 8 to 12 concurrent flows"
+        },
+        {
+            "type": "path_down",
+            "time_ms": 25000,
+            "path": ["71-20965-br-fra-2", "71-559-br-switch-1"],
+            "description": "GEANT-SWITCH core link fails: ETHZ and Sorbonne flows lose upstream connectivity, cascading impact reduces but concentrates remaining load"
+        },
+        {
+            "type": "path_up",
+            "time_ms": 35000,
+            "path": ["71-1781-br-kisti-2", "71-11537-br-i2-2"],
+            "description": "Internet2-KISTI direct link recovers: algorithm should redistribute US flows off the congested GEANT-KISTI core link"
+        },
+        {
+            "type": "path_up",
+            "time_ms": 42000,
+            "path": ["71-20965-br-fra-2", "71-559-br-switch-1"],
+            "description": "GEANT-SWITCH core link recovers: ETHZ and Sorbonne flows can resume"
+        }
+    ]
+}

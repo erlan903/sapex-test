@@ -1,6 +1,4 @@
 import random
-
-from matplotlib.pylab import partition
 from path_selection import PathSelectionAlgorithm
 
 #To integrate path lists, every path may be handled as objects with the following attributes
@@ -115,7 +113,7 @@ class PathCandidate:
         """
         interface_ids = set()
         for router_id in self.router_path:
-            # Router ID format: "1-ff00:0:110-br1-110-1"
+            # Router ID format: "71-20965-br-fra-1"
             # Interface ID is the full router ID
             interface_ids.add(router_id)
         return interface_ids
@@ -461,6 +459,8 @@ class SapexAlgorithm(PathSelectionAlgorithm):
         retrieved_paths = self._sync_candidates(source_as, destination_as)
         if not retrieved_paths:
             return None
+        
+        filtered_paths = []
 
     #Step 3: Compute the composite scores S(p,a) for each path
         # Detect bottlenecks across ALL filtered paths first
@@ -530,7 +530,6 @@ class SapexAlgorithm(PathSelectionAlgorithm):
         
         current_time = self.topology.env.now
 
-        filtered_paths = []
         for p in retrieved_paths:
             
             if not self.is_path_available(p.router_path):
@@ -632,7 +631,7 @@ class SapexAlgorithm(PathSelectionAlgorithm):
 
         #a for loop to to look into each partition in the sorted path list
             #an inner for loop to look into the paths inside the partitions
-        for i in range(0, size(filtered_paths), self.partition_size_N):
+        for i in range(0, len(filtered_paths), self.partition_size_N):
             partition = filtered_paths[i : i + self.partition_size_N]
             
             #for path in partition:
@@ -647,7 +646,7 @@ class SapexAlgorithm(PathSelectionAlgorithm):
                 # is the highest scoring one. The next is the second highest...
                 path_cost = path.score
                 
-                if current_budget >= cost:
+                if current_budget >= path_cost:
                     # We found the highest scoring path in this group that we can afford
                     if app_instance:
                         app_instance.budget = app_instance.budget - path_cost
@@ -677,16 +676,16 @@ class SapexAlgorithm(PathSelectionAlgorithm):
     
         # Step 10: Jitter and load distribution
         # Check if the active set has changed since last epoch
+        # NOTE: Jitter delay is recorded but NOT applied here via yield,
+        # because yield would turn select_path into a generator.
+        # Instead, the caller (application) should apply the delay. See self.delay.
         if set(active_set) != set(self.active_set):
-            # Active set has changed - apply jitter delay
+            # Active set has changed - compute jitter delay for caller to apply
             self.delay = random.uniform(0, self.max_delay)
-            print(f"[{self.env.now if self.env else 0:.2f}] Active path set changed. Applying jitter delay of {self.delay:.2f} ms")
-            yield self.env.timeout(self.delay) if self.env else None
-            
+            print(f"[{self.env.now if self.env else 0:.2f}] Active path set changed. Jitter delay of {self.delay:.2f} ms should be applied by caller.")
         else:
             # Active set unchanged - use minimum delay
             self.delay = 0
-        
 
         # Return a randomly selected path from the active set for load distribution
         if active_set:

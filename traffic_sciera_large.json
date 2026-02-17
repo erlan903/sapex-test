@@ -1,0 +1,47 @@
+{
+    "description": "Baseline steady-state traffic for sciera_large topology. No failures or stress events — use as control run to compare against path_failure, shared_bottleneck, and thundering_herd scenarios.",
+    "duration_ms": 30000,
+    "flows": [
+        {
+            "name": "EU-IntraRegion-OVGU-ETHZ",
+            "source": "71-2:0:1a,10.71.1.1",
+            "destination": "71-2:0:25,10.71.2.1",
+            "start_time_ms": 1000,
+            "data_size_kb": 8000,
+            "comment": "OVGU Magdeburg → ETHZ Zurich via GEANT→SWITCH (intra-EU research)"
+        },
+        {
+            "name": "Transatlantic-CMU-TUBerlin",
+            "source": "71-2:0:30,10.71.3.1",
+            "destination": "71-2:0:1b,10.71.1.11",
+            "start_time_ms": 2000,
+            "data_size_kb": 6000,
+            "comment": "CMU Pittsburgh → TU Berlin via Internet2→GEANT (transatlantic collaboration)"
+        },
+        {
+            "name": "Transpacific-KAIST-MIT",
+            "source": "71-2:0:40,10.71.4.1",
+            "destination": "71-2:0:31,10.71.3.11",
+            "start_time_ms": 2000,
+            "data_size_kb": 5000,
+            "comment": "KAIST Daejeon → MIT Boston via KISTI→Internet2 (transpacific)"
+        },
+        {
+            "name": "EU-Asia-Sorbonne-UTokyo",
+            "source": "71-2:0:26,10.71.2.11",
+            "destination": "71-2:0:42,10.71.4.21",
+            "start_time_ms": 3000,
+            "data_size_kb": 5000,
+            "comment": "Sorbonne Paris → U. Tokyo via GEANT→KISTI (EU-Asia long path)"
+        },
+        {
+            "name": "InterISD-ETHZ-Anapaya",
+            "source": "71-2:0:25,10.71.2.2",
+            "destination": "64-58057,10.64.0.1",
+            "start_time_ms": 1500,
+            "data_size_kb": 4000,
+            "comment": "ETHZ → Anapaya production via SWITCH→GEANT→ISD64 (inter-ISD peering)"
+        }
+    ],
+    "events": []
+}

@@ -3,7 +3,7 @@ from packet import Packet
 import random
 
 class Application:
-    def __init__(self, env, app_id, source_host, dest_host, path_selector, flow_config, results_dict, app_registry=None):
+    def __init__(self, env, app_id, source_host, dest_host, path_selector, flow_config, results_dict, app_registry=None, metrics_collector=None):
         self.env = env
         self.app_id = app_id
         self.source = source_host
@@ -14,11 +14,13 @@ class Application:
         self.packets_sent = 0
         self.source.application = self # Link back for notifications
         self.app_registry = app_registry
+        self.metrics_collector = metrics_collector
         self.current_path = None
         self.is_path_down = False
         self.path_scoring_randomness = random.uniform(0.1, 1)
         self.budget = 50 # budget for path selection
         self.maintenance_interval = 5000  # interval for periodic maintenance (in ms)
+        self.flow_name = flow_config.get('name', app_id)
         
     def run(self):
         yield self.env.timeout(self.flow_config['start_time_ms'])
@@ -35,6 +37,8 @@ class Application:
         self.current_path = path
         if self.app_registry:
             self.app_registry.register_path_usage(self, path)
+        if self.metrics_collector:
+            self.metrics_collector.record_path_switch(self.flow_name, self.env.now, path)
 
         print(f"[{self.env.now:.2f}] App {self.app_id}: Selected path: {' -> '.join(path)}")
 
@@ -63,6 +67,8 @@ class Application:
             packet.creation_time = self.env.now
             self.source.send_packet(packet)
             self.packets_sent += 1
+            if self.metrics_collector:
+                self.metrics_collector.record_packet_sent(self.flow_name, self.env.now, self.current_path, packet_size)
             yield self.env.timeout(1) # Send a packet every 1ms
     
     def receive_handler(self):
@@ -70,6 +76,8 @@ class Application:
             packet = yield self.source.in_queue.get()
             latency = self.env.now - packet.creation_time
             self.results["latencies"].append(latency)
+            if self.metrics_collector:
+                self.metrics_collector.record_packet_received(self.flow_name, self.env.now, latency)
             # --- FEEDBACK LOOP  ---
             # To close the control loop by feeding real-time Data Plane measurements
             # back into the Control Plane (Path Selection Algorithm).
@@ -87,6 +95,8 @@ class Application:
 
     def notify_loss(self, packet):
         self.results["packet_loss"] += 1
+        if self.metrics_collector:
+            self.metrics_collector.record_packet_loss(self.flow_name)
     # --- FEEDBACK LOOP (FAILURE SIGNAL) ---
         #To alert the Control Plane that a path has failed to deliver data.
         if hasattr(self.path_selector, 'update_path_feedback'):
@@ -133,6 +143,8 @@ class Application:
             self.current_path = new_path
             if self.app_registry:
                 self.app_registry.register_path_usage(self, new_path)
+            if self.metrics_collector:
+                self.metrics_collector.record_path_switch(self.flow_name, self.env.now, new_path)
             self.is_path_down = False
         else:
             print(f"[{self.env.now:.2f}] App {self.app_id}: No alternative path available")
@@ -154,5 +166,7 @@ class Application:
                 self.current_path = better_path
                 if self.app_registry:
                     self.app_registry.register_path_usage(self, better_path)
+                if self.metrics_collector:
+                    self.metrics_collector.record_path_switch(self.flow_name, self.env.now, better_path)
             
             yield self.env.timeout(self.maintenance_interval)

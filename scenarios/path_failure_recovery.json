@@ -1,0 +1,73 @@
+{
+    "scenario_name": "path_failure_recovery",
+    "description": "Path Failure & Recovery: Primary paths fail and recover within ISD 71 (SCIERA), testing failover behavior across GEANT, Internet2, and KISTI core links",
+    "duration_ms": 40000,
+    "flows": [
+        {
+            "name": "Primary-EU-to-US",
+            "source": "71-2:0:1a,10.71.1.1",
+            "destination": "71-2:0:30,10.71.3.1",
+            "start_time_ms": 3000,
+            "data_size_kb": 10000
+        },
+        {
+            "name": "Secondary-EU-to-US",
+            "source": "71-2:0:1b,10.71.1.11",
+            "destination": "71-2:0:31,10.71.3.11",
+            "start_time_ms": 3000,
+            "data_size_kb": 10000
+        },
+        {
+            "name": "EU-to-ASIA",
+            "source": "71-2:0:1c,10.71.1.21",
+            "destination": "71-2:0:40,10.71.4.1",
+            "start_time_ms": 3000,
+            "data_size_kb": 10000
+        },
+        {
+            "name": "Intra-EU",
+            "source": "71-2:0:25,10.71.2.1",
+            "destination": "71-2:0:1a,10.71.1.1",
+            "start_time_ms": 3000,
+            "data_size_kb": 8000
+        }
+    ],
+    "events": [
+        {
+            "type": "path_down",
+            "time_ms": 8000,
+            "path": ["71-2:0:1a-br-ovgu-1", "71-20965-br-fra-1"],
+            "description": "GEANT uplink to OVGU fails (affects EU-to-US primary)"
+        },
+        {
+            "type": "path_down",
+            "time_ms": 15000,
+            "path": ["71-20965-br-fra-2", "71-11537-br-i2-2"],
+            "description": "GEANT-Internet2 core link fails (affects all EU-to-US traffic)"
+        },
+        {
+            "type": "path_up",
+            "time_ms": 22000,
+            "path": ["71-2:0:1a-br-ovgu-1", "71-20965-br-fra-1"],
+            "description": "GEANT uplink to OVGU recovers"
+        },
+        {
+            "type": "path_up",
+            "time_ms": 28000,
+            "path": ["71-20965-br-fra-2", "71-11537-br-i2-2"],
+            "description": "GEANT-Internet2 core link recovers"
+        },
+        {
+            "type": "path_down",
+            "time_ms": 32000,
+            "path": ["71-1781-br-kisti-2", "71-20965-br-fra-2"],
+            "description": "KISTI-GEANT core link fails briefly"
+        },
+        {
+            "type": "path_up",
+            "time_ms": 36000,
+            "path": ["71-1781-br-kisti-2", "71-20965-br-fra-2"],
+            "description": "KISTI-GEANT core link recovers"
+        }
+    ]
+}

@@ -1,0 +1,16 @@
+{
+  "topology": "topology.json",
+  "traffic": "scenarios/thundering_herd.json",
+  "algorithm": "sapex",
+  "scenario": "thundering_herd",
+  "output_dir": "results\\20260209_191224\\thundering_herd\\sapex",
+  "experiment_name": "sapex__thundering_herd__small__np1000_tr2000_cd5000_ld0.5_b100",
+  "parameters": {
+    "num_packets": 1000,
+    "packet_size_bytes": 1500,
+    "t_round_ms": 2000,
+    "cooldown_ms": 5000,
+    "lambda_div": 0.5,
+    "point_budget": 100
+  }
+}

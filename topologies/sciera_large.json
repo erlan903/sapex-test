@@ -1,0 +1,325 @@
+{
+    "_metadata": {
+        "description": "SCIERA topology — ISD 71 with 4 core ASes, 12 leaf ASes, + ISD 64 Anapaya gateway",
+        "reference": "https://sciera.readthedocs.io/en/latest/",
+        "structure": "Single ISD 71 spanning EU, US, Asia. Core ASes are NRENs (GEANT, SWITCH, Internet2, KISTI). Connected to ISD 64 (Anapaya production) via peering.",
+        "link_parameters": "Core links: 15-150ms, 10Gbps. Parent-child uplinks: 2-50ms, 1Gbps. Inter-ISD peering: 2ms, 10Gbps.",
+        "as_numbering": "Core NRENs use real BGP ASNs (GEANT=20965, SWITCH=559, Internet2=11537, KISTI=1781). Leaf university ASes use SCION-only numbers (2:0:xx range)."
+    },
+
+    "71-20965": {
+        "core": true,
+        "comment": "GEANT — EU Hub (PoPs: Frankfurt, Paris). Primary SCIERA core, gateway to ISD 64.",
+        "border_routers": {
+            "br-fra-1": {
+                "comment": "Frankfurt PoP — downlinks to DFN-connected universities",
+                "interfaces": [
+                    {"isd_as": "71-2:0:1a", "neighbor_router": "br-ovgu-1", "latency_ms": 8, "bandwidth_mbps": 1000},
+                    {"isd_as": "71-2:0:1b", "neighbor_router": "br-tub-1", "latency_ms": 5, "bandwidth_mbps": 1000},
+                    {"isd_as": "71-2:0:1c", "neighbor_router": "br-lmu-1", "latency_ms": 5, "bandwidth_mbps": 1000},
+                    {"isd_as": "71-2:0:1d", "neighbor_router": "br-kit-1", "latency_ms": 3, "bandwidth_mbps": 1000}
+                ]
+            },
+            "br-fra-2": {
+                "comment": "Frankfurt PoP — core links to other NRENs + inter-ISD peering to Anapaya",
+                "interfaces": [
+                    {"isd_as": "71-559", "neighbor_router": "br-switch-1", "latency_ms": 15, "bandwidth_mbps": 10000},
+                    {"isd_as": "71-11537", "neighbor_router": "br-i2-2", "latency_ms": 85, "bandwidth_mbps": 10000},
+                    {"isd_as": "71-1781", "neighbor_router": "br-kisti-2", "latency_ms": 150, "bandwidth_mbps": 10000},
+                    {"isd_as": "64-58057", "neighbor_router": "br-ana-1", "latency_ms": 2, "bandwidth_mbps": 10000}
+                ]
+            },
+            "br-par-1": {
+                "comment": "Paris PoP — downlink to Renater-connected institutions",
+                "interfaces": [
+                    {"isd_as": "71-2:0:26", "neighbor_router": "br-sorb-1", "latency_ms": 5, "bandwidth_mbps": 1000}
+                ]
+            }
+        },
+        "hosts": {
+            "geant-mgmt": {"addr": "10.71.0.1"}
+        }
+    },
+
+    "71-559": {
+        "core": true,
+        "comment": "SWITCH — Swiss NREN (Geneva). Hosts ETHZ connectivity.",
+        "border_routers": {
+            "br-switch-1": {
+                "interfaces": [
+                    {"isd_as": "71-20965", "neighbor_router": "br-fra-2", "latency_ms": 15, "bandwidth_mbps": 10000},
+                    {"isd_as": "71-11537", "neighbor_router": "br-i2-2", "latency_ms": 90, "bandwidth_mbps": 10000},
+                    {"isd_as": "71-2:0:25", "neighbor_router": "br-ethz-1", "latency_ms": 3, "bandwidth_mbps": 1000}
+                ]
+            }
+        },
+        "hosts": {
+            "switch-mgmt": {"addr": "10.71.0.2"}
+        }
+    },
+
+    "71-11537": {
+        "core": true,
+        "comment": "Internet2 / BRIDGES — US Hub (Pittsburgh). US NREN providing SCION connectivity.",
+        "border_routers": {
+            "br-i2-1": {
+                "comment": "Downlinks to US universities",
+                "interfaces": [
+                    {"isd_as": "71-2:0:30", "neighbor_router": "br-cmu-1", "latency_ms": 2, "bandwidth_mbps": 1000},
+                    {"isd_as": "71-2:0:31", "neighbor_router": "br-mit-1", "latency_ms": 15, "bandwidth_mbps": 1000},
+                    {"isd_as": "71-2:0:32", "neighbor_router": "br-columbia-1", "latency_ms": 8, "bandwidth_mbps": 1000},
+                    {"isd_as": "71-2:0:33", "neighbor_router": "br-usc-1", "latency_ms": 35, "bandwidth_mbps": 1000}
+                ]
+            },
+            "br-i2-2": {
+                "comment": "Core links to GEANT, SWITCH, KISTI",
+                "interfaces": [
+                    {"isd_as": "71-20965", "neighbor_router": "br-fra-2", "latency_ms": 85, "bandwidth_mbps": 10000},
+                    {"isd_as": "71-559", "neighbor_router": "br-switch-1", "latency_ms": 90, "bandwidth_mbps": 10000},
+                    {"isd_as": "71-1781", "neighbor_router": "br-kisti-2", "latency_ms": 120, "bandwidth_mbps": 10000}
+                ]
+            }
+        },
+        "hosts": {
+            "i2-mgmt": {"addr": "10.71.0.3"}
+        }
+    },
+
+    "71-1781": {
+        "core": true,
+        "comment": "KISTI / KREONET — Asia Hub (Daejeon, South Korea). Asia-Pacific NREN.",
+        "border_routers": {
+            "br-kisti-1": {
+                "comment": "Downlinks to Asian institutions",
+                "interfaces": [
+                    {"isd_as": "71-2:0:40", "neighbor_router": "br-kaist-1", "latency_ms": 5, "bandwidth_mbps": 1000},
+                    {"isd_as": "71-2:0:41", "neighbor_router": "br-nus-1", "latency_ms": 50, "bandwidth_mbps": 1000},
+                    {"isd_as": "71-2:0:42", "neighbor_router": "br-utokyo-1", "latency_ms": 25, "bandwidth_mbps": 1000}
+                ]
+            },
+            "br-kisti-2": {
+                "comment": "Core links to GEANT and Internet2",
+                "interfaces": [
+                    {"isd_as": "71-20965", "neighbor_router": "br-fra-2", "latency_ms": 150, "bandwidth_mbps": 10000},
+                    {"isd_as": "71-11537", "neighbor_router": "br-i2-2", "latency_ms": 120, "bandwidth_mbps": 10000}
+                ]
+            }
+        },
+        "hosts": {
+            "kisti-mgmt": {"addr": "10.71.0.4"}
+        }
+    },
+
+    "71-2:0:1a": {
+        "core": false,
+        "comment": "OVGU Magdeburg (via DFN/GEANT Frankfurt). SCIERA co-operator.",
+        "border_routers": {
+            "br-ovgu-1": {
+                "interfaces": [
+                    {"isd_as": "71-20965", "neighbor_router": "br-fra-1", "latency_ms": 8, "bandwidth_mbps": 1000}
+                ]
+            }
+        },
+        "hosts": {
+            "ovgu-host1": {"addr": "10.71.1.1"},
+            "ovgu-host2": {"addr": "10.71.1.2"}
+        }
+    },
+
+    "71-2:0:1b": {
+        "core": false,
+        "comment": "TU Berlin (via DFN/GEANT Frankfurt)",
+        "border_routers": {
+            "br-tub-1": {
+                "interfaces": [
+                    {"isd_as": "71-20965", "neighbor_router": "br-fra-1", "latency_ms": 5, "bandwidth_mbps": 1000}
+                ]
+            }
+        },
+        "hosts": {
+            "tub-host1": {"addr": "10.71.1.11"}
+        }
+    },
+
+    "71-2:0:1c": {
+        "core": false,
+        "comment": "LMU Munich (via DFN/GEANT Frankfurt)",
+        "border_routers": {
+            "br-lmu-1": {
+                "interfaces": [
+                    {"isd_as": "71-20965", "neighbor_router": "br-fra-1", "latency_ms": 5, "bandwidth_mbps": 1000}
+                ]
+            }
+        },
+        "hosts": {
+            "lmu-host1": {"addr": "10.71.1.21"}
+        }
+    },
+
+    "71-2:0:1d": {
+        "core": false,
+        "comment": "KIT Karlsruhe (via BelWu/GEANT Frankfurt)",
+        "border_routers": {
+            "br-kit-1": {
+                "interfaces": [
+                    {"isd_as": "71-20965", "neighbor_router": "br-fra-1", "latency_ms": 3, "bandwidth_mbps": 1000}
+                ]
+            }
+        },
+        "hosts": {
+            "kit-host1": {"addr": "10.71.1.31"}
+        }
+    },
+
+    "71-2:0:25": {
+        "core": false,
+        "comment": "ETHZ Zurich (via SWITCH Geneva). SCIERA co-operator.",
+        "border_routers": {
+            "br-ethz-1": {
+                "interfaces": [
+                    {"isd_as": "71-559", "neighbor_router": "br-switch-1", "latency_ms": 3, "bandwidth_mbps": 1000}
+                ]
+            }
+        },
+        "hosts": {
+            "ethz-host1": {"addr": "10.71.2.1"},
+            "ethz-host2": {"addr": "10.71.2.2"}
+        }
+    },
+
+    "71-2:0:26": {
+        "core": false,
+        "comment": "Sorbonne Universite Paris (via Renater/GEANT Paris PoP)",
+        "border_routers": {
+            "br-sorb-1": {
+                "interfaces": [
+                    {"isd_as": "71-20965", "neighbor_router": "br-par-1", "latency_ms": 5, "bandwidth_mbps": 1000}
+                ]
+            }
+        },
+        "hosts": {
+            "sorb-host1": {"addr": "10.71.2.11"}
+        }
+    },
+
+    "71-2:0:30": {
+        "core": false,
+        "comment": "Carnegie Mellon University Pittsburgh (via Internet2/BRIDGES)",
+        "border_routers": {
+            "br-cmu-1": {
+                "interfaces": [
+                    {"isd_as": "71-11537", "neighbor_router": "br-i2-1", "latency_ms": 2, "bandwidth_mbps": 1000}
+                ]
+            }
+        },
+        "hosts": {
+            "cmu-host1": {"addr": "10.71.3.1"},
+            "cmu-host2": {"addr": "10.71.3.2"}
+        }
+    },
+
+    "71-2:0:31": {
+        "core": false,
+        "comment": "MIT Boston (via Internet2/BRIDGES)",
+        "border_routers": {
+            "br-mit-1": {
+                "interfaces": [
+                    {"isd_as": "71-11537", "neighbor_router": "br-i2-1", "latency_ms": 15, "bandwidth_mbps": 1000}
+                ]
+            }
+        },
+        "hosts": {
+            "mit-host1": {"addr": "10.71.3.11"}
+        }
+    },
+
+    "71-2:0:32": {
+        "core": false,
+        "comment": "Columbia University New York (via Internet2/BRIDGES)",
+        "border_routers": {
+            "br-columbia-1": {
+                "interfaces": [
+                    {"isd_as": "71-11537", "neighbor_router": "br-i2-1", "latency_ms": 8, "bandwidth_mbps": 1000}
+                ]
+            }
+        },
+        "hosts": {
+            "columbia-host1": {"addr": "10.71.3.21"}
+        }
+    },
+
+    "71-2:0:33": {
+        "core": false,
+        "comment": "USC / ISI Los Angeles (via Internet2/BRIDGES)",
+        "border_routers": {
+            "br-usc-1": {
+                "interfaces": [
+                    {"isd_as": "71-11537", "neighbor_router": "br-i2-1", "latency_ms": 35, "bandwidth_mbps": 1000}
+                ]
+            }
+        },
+        "hosts": {
+            "usc-host1": {"addr": "10.71.3.31"}
+        }
+    },
+
+    "71-2:0:40": {
+        "core": false,
+        "comment": "KAIST Daejeon (via KISTI/KREONET)",
+        "border_routers": {
+            "br-kaist-1": {
+                "interfaces": [
+                    {"isd_as": "71-1781", "neighbor_router": "br-kisti-1", "latency_ms": 5, "bandwidth_mbps": 1000}
+                ]
+            }
+        },
+        "hosts": {
+            "kaist-host1": {"addr": "10.71.4.1"}
+        }
+    },
+
+    "71-2:0:41": {
+        "core": false,
+        "comment": "NUS Singapore (via KISTI/KREONET)",
+        "border_routers": {
+            "br-nus-1": {
+                "interfaces": [
+                    {"isd_as": "71-1781", "neighbor_router": "br-kisti-1", "latency_ms": 50, "bandwidth_mbps": 1000}
+                ]
+            }
+        },
+        "hosts": {
+            "nus-host1": {"addr": "10.71.4.11"}
+        }
+    },
+
+    "71-2:0:42": {
+        "core": false,
+        "comment": "University of Tokyo (via SINET/KISTI)",
+        "border_routers": {
+            "br-utokyo-1": {
+                "interfaces": [
+                    {"isd_as": "71-1781", "neighbor_router": "br-kisti-1", "latency_ms": 25, "bandwidth_mbps": 1000}
+                ]
+            }
+        },
+        "hosts": {
+            "utokyo-host1": {"addr": "10.71.4.21"}
+        }
+    },
+
+    "64-58057": {
+        "core": true,
+        "comment": "Anapaya Systems — ISD 64 production network gateway. Inter-ISD peering with SCIERA.",
+        "border_routers": {
+            "br-ana-1": {
+                "interfaces": [
+                    {"isd_as": "71-20965", "neighbor_router": "br-fra-2", "latency_ms": 2, "bandwidth_mbps": 10000}
+                ]
+            }
+        },
+        "hosts": {
+            "ana-host1": {"addr": "10.64.0.1"}
+        }
+    }
+}

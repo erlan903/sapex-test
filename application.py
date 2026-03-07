@@ -82,6 +82,13 @@ class Application:
         while True:
             # Receive at the destination host queue for this flow.
             packet = yield self.destination.in_queue.get()
+
+            # Ignore control traffic or packets that do not belong to this flow.
+            if getattr(packet, 'is_beacon', False):
+                continue
+            if getattr(packet, 'flow_name', None) not in (None, self.flow_name):
+                continue
+
             latency = self.env.now - packet.creation_time
             self.results["latencies"].append(latency)
             if self.metrics_collector:

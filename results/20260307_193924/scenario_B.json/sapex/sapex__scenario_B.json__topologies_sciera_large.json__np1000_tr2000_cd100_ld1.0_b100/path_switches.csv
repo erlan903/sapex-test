@@ -1,0 +1,93 @@
+flow_name,sim_time_ms,new_path
+EU-IntraRegion-OVGU-ETHZ,3000,71-2:0:1a-br-ovgu-1 -> 71-20965-br-fra-1 -> 71-20965-br-par-1 -> 71-20965-br-fra-2 -> 71-559-br-switch-1 -> 71-2:0:25-br-ethz-1
+EU-IntraRegion-OVGU-ETHZ,8000,71-2:0:1a-br-ovgu-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-1781-br-kisti-2 -> 71-11537-br-i2-2 -> 71-559-br-switch-1 -> 71-2:0:25-br-ethz-1
+EU-IntraRegion-OVGU-ETHZ,13000,71-2:0:1a-br-ovgu-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-11537-br-i2-2 -> 71-559-br-switch-1 -> 71-2:0:25-br-ethz-1
+EU-IntraRegion-OVGU-ETHZ,18000,71-2:0:1a-br-ovgu-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-1781-br-kisti-2 -> 71-11537-br-i2-2 -> 71-559-br-switch-1 -> 71-2:0:25-br-ethz-1
+EU-IntraRegion-OVGU-ETHZ,23000,71-2:0:1a-br-ovgu-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-11537-br-i2-2 -> 71-559-br-switch-1 -> 71-2:0:25-br-ethz-1
+EU-IntraRegion-OVGU-ETHZ,28000,71-2:0:1a-br-ovgu-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-1781-br-kisti-2 -> 71-11537-br-i2-2 -> 71-559-br-switch-1 -> 71-2:0:25-br-ethz-1
+EU-IntraRegion-OVGU-ETHZ,38000,71-2:0:1a-br-ovgu-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-11537-br-i2-2 -> 71-559-br-switch-1 -> 71-2:0:25-br-ethz-1
+EU-IntraRegion-OVGU-ETHZ,48000,71-2:0:1a-br-ovgu-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-1781-br-kisti-2 -> 71-11537-br-i2-2 -> 71-559-br-switch-1 -> 71-2:0:25-br-ethz-1
+EU-IntraRegion-OVGU-ETHZ,53000,71-2:0:1a-br-ovgu-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-11537-br-i2-2 -> 71-559-br-switch-1 -> 71-2:0:25-br-ethz-1
+EU-IntraRegion-OVGU-ETHZ,58000,71-2:0:1a-br-ovgu-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-1781-br-kisti-2 -> 71-11537-br-i2-2 -> 71-559-br-switch-1 -> 71-2:0:25-br-ethz-1
+EU-IntraRegion-OVGU-ETHZ,63000,71-2:0:1a-br-ovgu-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-11537-br-i2-2 -> 71-559-br-switch-1 -> 71-2:0:25-br-ethz-1
+EU-IntraRegion-OVGU-ETHZ,68000,71-2:0:1a-br-ovgu-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-1781-br-kisti-2 -> 71-11537-br-i2-2 -> 71-559-br-switch-1 -> 71-2:0:25-br-ethz-1
+EU-IntraRegion-OVGU-ETHZ,78000,71-2:0:1a-br-ovgu-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-11537-br-i2-2 -> 71-559-br-switch-1 -> 71-2:0:25-br-ethz-1
+EU-IntraRegion-OVGU-ETHZ,83000,71-2:0:1a-br-ovgu-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-1781-br-kisti-2 -> 71-11537-br-i2-2 -> 71-559-br-switch-1 -> 71-2:0:25-br-ethz-1
+EU-IntraRegion-OVGU-ETHZ,88000,71-2:0:1a-br-ovgu-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-11537-br-i2-2 -> 71-559-br-switch-1 -> 71-2:0:25-br-ethz-1
+EU-IntraRegion-OVGU-ETHZ,93000,71-2:0:1a-br-ovgu-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-559-br-switch-1 -> 71-2:0:25-br-ethz-1
+EU-IntraRegion-OVGU-ETHZ,103000,71-2:0:1a-br-ovgu-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-1781-br-kisti-2 -> 71-11537-br-i2-2 -> 71-559-br-switch-1 -> 71-2:0:25-br-ethz-1
+EU-IntraRegion-OVGU-ETHZ,108000,71-2:0:1a-br-ovgu-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-11537-br-i2-2 -> 71-559-br-switch-1 -> 71-2:0:25-br-ethz-1
+EU-IntraRegion-OVGU-ETHZ,118000,71-2:0:1a-br-ovgu-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-559-br-switch-1 -> 71-2:0:25-br-ethz-1
+EU-IntraRegion-OVGU-ETHZ,123000,71-2:0:1a-br-ovgu-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-1781-br-kisti-2 -> 71-11537-br-i2-2 -> 71-559-br-switch-1 -> 71-2:0:25-br-ethz-1
+EU-IntraRegion-OVGU-ETHZ,133000,71-2:0:1a-br-ovgu-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-11537-br-i2-2 -> 71-559-br-switch-1 -> 71-2:0:25-br-ethz-1
+EU-IntraRegion-OVGU-ETHZ,148000,71-2:0:1a-br-ovgu-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-1781-br-kisti-2 -> 71-11537-br-i2-2 -> 71-559-br-switch-1 -> 71-2:0:25-br-ethz-1
+InterISD-ETHZ-Anapaya,3500,71-2:0:25-br-ethz-1 -> 71-559-br-switch-1 -> 71-11537-br-i2-2 -> 71-20965-br-fra-2 -> 64-58057-br-ana-1
+InterISD-ETHZ-Anapaya,8500,71-2:0:25-br-ethz-1 -> 71-559-br-switch-1 -> 71-20965-br-fra-2 -> 64-58057-br-ana-1
+InterISD-ETHZ-Anapaya,13500,71-2:0:25-br-ethz-1 -> 71-559-br-switch-1 -> 71-11537-br-i2-2 -> 71-1781-br-kisti-2 -> 71-20965-br-fra-2 -> 64-58057-br-ana-1
+InterISD-ETHZ-Anapaya,18500,71-2:0:25-br-ethz-1 -> 71-559-br-switch-1 -> 71-20965-br-fra-2 -> 64-58057-br-ana-1
+InterISD-ETHZ-Anapaya,38500,71-2:0:25-br-ethz-1 -> 71-559-br-switch-1 -> 71-11537-br-i2-2 -> 71-1781-br-kisti-2 -> 71-20965-br-fra-2 -> 64-58057-br-ana-1
+InterISD-ETHZ-Anapaya,43500,71-2:0:25-br-ethz-1 -> 71-559-br-switch-1 -> 71-20965-br-fra-2 -> 64-58057-br-ana-1
+InterISD-ETHZ-Anapaya,53500,71-2:0:25-br-ethz-1 -> 71-559-br-switch-1 -> 71-11537-br-i2-2 -> 71-1781-br-kisti-2 -> 71-20965-br-fra-2 -> 64-58057-br-ana-1
+InterISD-ETHZ-Anapaya,83500,71-2:0:25-br-ethz-1 -> 71-559-br-switch-1 -> 71-20965-br-fra-2 -> 64-58057-br-ana-1
+InterISD-ETHZ-Anapaya,93500,71-2:0:25-br-ethz-1 -> 71-559-br-switch-1 -> 71-11537-br-i2-2 -> 71-1781-br-kisti-2 -> 71-20965-br-fra-2 -> 64-58057-br-ana-1
+InterISD-ETHZ-Anapaya,98500,71-2:0:25-br-ethz-1 -> 71-559-br-switch-1 -> 71-20965-br-fra-2 -> 64-58057-br-ana-1
+InterISD-ETHZ-Anapaya,103500,71-2:0:25-br-ethz-1 -> 71-559-br-switch-1 -> 71-11537-br-i2-2 -> 71-1781-br-kisti-2 -> 71-20965-br-fra-2 -> 64-58057-br-ana-1
+InterISD-ETHZ-Anapaya,118500,71-2:0:25-br-ethz-1 -> 71-559-br-switch-1 -> 71-20965-br-fra-2 -> 64-58057-br-ana-1
+InterISD-ETHZ-Anapaya,128500,71-2:0:25-br-ethz-1 -> 71-559-br-switch-1 -> 71-11537-br-i2-2 -> 71-1781-br-kisti-2 -> 71-20965-br-fra-2 -> 64-58057-br-ana-1
+InterISD-ETHZ-Anapaya,133500,71-2:0:25-br-ethz-1 -> 71-559-br-switch-1 -> 71-20965-br-fra-2 -> 64-58057-br-ana-1
+InterISD-ETHZ-Anapaya,138500,71-2:0:25-br-ethz-1 -> 71-559-br-switch-1 -> 71-11537-br-i2-2 -> 71-1781-br-kisti-2 -> 71-20965-br-fra-2 -> 64-58057-br-ana-1
+InterISD-ETHZ-Anapaya,143500,71-2:0:25-br-ethz-1 -> 71-559-br-switch-1 -> 71-20965-br-fra-2 -> 64-58057-br-ana-1
+InterISD-ETHZ-Anapaya,148500,71-2:0:25-br-ethz-1 -> 71-559-br-switch-1 -> 71-11537-br-i2-2 -> 71-1781-br-kisti-2 -> 71-20965-br-fra-2 -> 64-58057-br-ana-1
+Transatlantic-CMU-TUBerlin,4000,71-2:0:30-br-cmu-1 -> 71-11537-br-i2-1 -> 71-11537-br-i2-2 -> 71-20965-br-fra-2 -> 71-20965-br-par-1 -> 71-20965-br-fra-1 -> 71-2:0:1b-br-tub-1
+Transatlantic-CMU-TUBerlin,9000,71-2:0:30-br-cmu-1 -> 71-11537-br-i2-1 -> 71-11537-br-i2-2 -> 71-559-br-switch-1 -> 71-20965-br-fra-2 -> 71-20965-br-fra-1 -> 71-2:0:1b-br-tub-1
+Transatlantic-CMU-TUBerlin,14000,71-2:0:30-br-cmu-1 -> 71-11537-br-i2-1 -> 71-11537-br-i2-2 -> 71-20965-br-fra-2 -> 71-20965-br-fra-1 -> 71-2:0:1b-br-tub-1
+Transatlantic-CMU-TUBerlin,19000,71-2:0:30-br-cmu-1 -> 71-11537-br-i2-1 -> 71-11537-br-i2-2 -> 71-559-br-switch-1 -> 71-20965-br-fra-2 -> 71-20965-br-fra-1 -> 71-2:0:1b-br-tub-1
+Transatlantic-CMU-TUBerlin,24000,71-2:0:30-br-cmu-1 -> 71-11537-br-i2-1 -> 71-11537-br-i2-2 -> 71-20965-br-fra-2 -> 71-20965-br-fra-1 -> 71-2:0:1b-br-tub-1
+Transatlantic-CMU-TUBerlin,29000,71-2:0:30-br-cmu-1 -> 71-11537-br-i2-1 -> 71-11537-br-i2-2 -> 71-559-br-switch-1 -> 71-20965-br-fra-2 -> 71-20965-br-fra-1 -> 71-2:0:1b-br-tub-1
+Transatlantic-CMU-TUBerlin,39000,71-2:0:30-br-cmu-1 -> 71-11537-br-i2-1 -> 71-11537-br-i2-2 -> 71-20965-br-fra-2 -> 71-20965-br-fra-1 -> 71-2:0:1b-br-tub-1
+Transatlantic-CMU-TUBerlin,44000,71-2:0:30-br-cmu-1 -> 71-11537-br-i2-1 -> 71-11537-br-i2-2 -> 71-1781-br-kisti-2 -> 71-20965-br-fra-2 -> 71-20965-br-fra-1 -> 71-2:0:1b-br-tub-1
+Transatlantic-CMU-TUBerlin,49000,71-2:0:30-br-cmu-1 -> 71-11537-br-i2-1 -> 71-11537-br-i2-2 -> 71-559-br-switch-1 -> 71-20965-br-fra-2 -> 71-20965-br-fra-1 -> 71-2:0:1b-br-tub-1
+Transatlantic-CMU-TUBerlin,59000,71-2:0:30-br-cmu-1 -> 71-11537-br-i2-1 -> 71-11537-br-i2-2 -> 71-20965-br-fra-2 -> 71-20965-br-fra-1 -> 71-2:0:1b-br-tub-1
+Transatlantic-CMU-TUBerlin,79000,71-2:0:30-br-cmu-1 -> 71-11537-br-i2-1 -> 71-11537-br-i2-2 -> 71-559-br-switch-1 -> 71-20965-br-fra-2 -> 71-20965-br-fra-1 -> 71-2:0:1b-br-tub-1
+Transatlantic-CMU-TUBerlin,84000,71-2:0:30-br-cmu-1 -> 71-11537-br-i2-1 -> 71-11537-br-i2-2 -> 71-1781-br-kisti-2 -> 71-20965-br-fra-2 -> 71-20965-br-fra-1 -> 71-2:0:1b-br-tub-1
+Transatlantic-CMU-TUBerlin,94000,71-2:0:30-br-cmu-1 -> 71-11537-br-i2-1 -> 71-11537-br-i2-2 -> 71-559-br-switch-1 -> 71-20965-br-fra-2 -> 71-20965-br-fra-1 -> 71-2:0:1b-br-tub-1
+Transatlantic-CMU-TUBerlin,104000,71-2:0:30-br-cmu-1 -> 71-11537-br-i2-1 -> 71-11537-br-i2-2 -> 71-20965-br-fra-2 -> 71-20965-br-fra-1 -> 71-2:0:1b-br-tub-1
+Transatlantic-CMU-TUBerlin,114000,71-2:0:30-br-cmu-1 -> 71-11537-br-i2-1 -> 71-11537-br-i2-2 -> 71-559-br-switch-1 -> 71-20965-br-fra-2 -> 71-20965-br-fra-1 -> 71-2:0:1b-br-tub-1
+Transatlantic-CMU-TUBerlin,119000,71-2:0:30-br-cmu-1 -> 71-11537-br-i2-1 -> 71-11537-br-i2-2 -> 71-1781-br-kisti-2 -> 71-20965-br-fra-2 -> 71-20965-br-fra-1 -> 71-2:0:1b-br-tub-1
+Transatlantic-CMU-TUBerlin,134000,71-2:0:30-br-cmu-1 -> 71-11537-br-i2-1 -> 71-11537-br-i2-2 -> 71-559-br-switch-1 -> 71-20965-br-fra-2 -> 71-20965-br-fra-1 -> 71-2:0:1b-br-tub-1
+Transatlantic-CMU-TUBerlin,139000,71-2:0:30-br-cmu-1 -> 71-11537-br-i2-1 -> 71-11537-br-i2-2 -> 71-1781-br-kisti-2 -> 71-20965-br-fra-2 -> 71-20965-br-fra-1 -> 71-2:0:1b-br-tub-1
+Transpacific-KAIST-MIT,4000,71-2:0:40-br-kaist-1 -> 71-1781-br-kisti-1 -> 71-1781-br-kisti-2 -> 71-20965-br-fra-2 -> 71-11537-br-i2-2 -> 71-11537-br-i2-1 -> 71-2:0:31-br-mit-1
+Transpacific-KAIST-MIT,9000,71-2:0:40-br-kaist-1 -> 71-1781-br-kisti-1 -> 71-1781-br-kisti-2 -> 71-20965-br-fra-2 -> 71-559-br-switch-1 -> 71-11537-br-i2-2 -> 71-11537-br-i2-1 -> 71-2:0:31-br-mit-1
+Transpacific-KAIST-MIT,14000,71-2:0:40-br-kaist-1 -> 71-1781-br-kisti-1 -> 71-1781-br-kisti-2 -> 71-11537-br-i2-2 -> 71-11537-br-i2-1 -> 71-2:0:31-br-mit-1
+Transpacific-KAIST-MIT,19000,71-2:0:40-br-kaist-1 -> 71-1781-br-kisti-1 -> 71-1781-br-kisti-2 -> 71-20965-br-fra-2 -> 71-559-br-switch-1 -> 71-11537-br-i2-2 -> 71-11537-br-i2-1 -> 71-2:0:31-br-mit-1
+Transpacific-KAIST-MIT,24000,71-2:0:40-br-kaist-1 -> 71-1781-br-kisti-1 -> 71-1781-br-kisti-2 -> 71-11537-br-i2-2 -> 71-11537-br-i2-1 -> 71-2:0:31-br-mit-1
+Transpacific-KAIST-MIT,39000,71-2:0:40-br-kaist-1 -> 71-1781-br-kisti-1 -> 71-1781-br-kisti-2 -> 71-20965-br-fra-2 -> 71-559-br-switch-1 -> 71-11537-br-i2-2 -> 71-11537-br-i2-1 -> 71-2:0:31-br-mit-1
+Transpacific-KAIST-MIT,54000,71-2:0:40-br-kaist-1 -> 71-1781-br-kisti-1 -> 71-1781-br-kisti-2 -> 71-11537-br-i2-2 -> 71-11537-br-i2-1 -> 71-2:0:31-br-mit-1
+Transpacific-KAIST-MIT,59000,71-2:0:40-br-kaist-1 -> 71-1781-br-kisti-1 -> 71-1781-br-kisti-2 -> 71-20965-br-fra-2 -> 71-559-br-switch-1 -> 71-11537-br-i2-2 -> 71-11537-br-i2-1 -> 71-2:0:31-br-mit-1
+Transpacific-KAIST-MIT,64000,71-2:0:40-br-kaist-1 -> 71-1781-br-kisti-1 -> 71-1781-br-kisti-2 -> 71-11537-br-i2-2 -> 71-11537-br-i2-1 -> 71-2:0:31-br-mit-1
+Transpacific-KAIST-MIT,74000,71-2:0:40-br-kaist-1 -> 71-1781-br-kisti-1 -> 71-1781-br-kisti-2 -> 71-20965-br-fra-2 -> 71-559-br-switch-1 -> 71-11537-br-i2-2 -> 71-11537-br-i2-1 -> 71-2:0:31-br-mit-1
+Transpacific-KAIST-MIT,124000,71-2:0:40-br-kaist-1 -> 71-1781-br-kisti-1 -> 71-1781-br-kisti-2 -> 71-11537-br-i2-2 -> 71-11537-br-i2-1 -> 71-2:0:31-br-mit-1
+Transpacific-KAIST-MIT,144000,71-2:0:40-br-kaist-1 -> 71-1781-br-kisti-1 -> 71-1781-br-kisti-2 -> 71-20965-br-fra-2 -> 71-559-br-switch-1 -> 71-11537-br-i2-2 -> 71-11537-br-i2-1 -> 71-2:0:31-br-mit-1
+EU-Asia-Sorbonne-UTokyo,5000,71-2:0:26-br-sorb-1 -> 71-20965-br-par-1 -> 71-20965-br-fra-2 -> 71-559-br-switch-1 -> 71-11537-br-i2-2 -> 71-1781-br-kisti-2 -> 71-1781-br-kisti-1 -> 71-2:0:42-br-utokyo-1
+EU-Asia-Sorbonne-UTokyo,10000,71-2:0:26-br-sorb-1 -> 71-20965-br-par-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-1781-br-kisti-2 -> 71-1781-br-kisti-1 -> 71-2:0:42-br-utokyo-1
+EU-Asia-Sorbonne-UTokyo,20000,71-2:0:26-br-sorb-1 -> 71-20965-br-par-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-559-br-switch-1 -> 71-11537-br-i2-2 -> 71-1781-br-kisti-2 -> 71-1781-br-kisti-1 -> 71-2:0:42-br-utokyo-1
+EU-Asia-Sorbonne-UTokyo,25000,71-2:0:26-br-sorb-1 -> 71-20965-br-par-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-11537-br-i2-2 -> 71-1781-br-kisti-2 -> 71-1781-br-kisti-1 -> 71-2:0:42-br-utokyo-1
+EU-Asia-Sorbonne-UTokyo,30000,71-2:0:26-br-sorb-1 -> 71-20965-br-par-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-559-br-switch-1 -> 71-11537-br-i2-2 -> 71-1781-br-kisti-2 -> 71-1781-br-kisti-1 -> 71-2:0:42-br-utokyo-1
+EU-Asia-Sorbonne-UTokyo,35000,71-2:0:26-br-sorb-1 -> 71-20965-br-par-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-1781-br-kisti-2 -> 71-1781-br-kisti-1 -> 71-2:0:42-br-utokyo-1
+EU-Asia-Sorbonne-UTokyo,40000,71-2:0:26-br-sorb-1 -> 71-20965-br-par-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-11537-br-i2-2 -> 71-1781-br-kisti-2 -> 71-1781-br-kisti-1 -> 71-2:0:42-br-utokyo-1
+EU-Asia-Sorbonne-UTokyo,45000,71-2:0:26-br-sorb-1 -> 71-20965-br-par-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-559-br-switch-1 -> 71-11537-br-i2-2 -> 71-1781-br-kisti-2 -> 71-1781-br-kisti-1 -> 71-2:0:42-br-utokyo-1
+EU-Asia-Sorbonne-UTokyo,50000,71-2:0:26-br-sorb-1 -> 71-20965-br-par-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-11537-br-i2-2 -> 71-1781-br-kisti-2 -> 71-1781-br-kisti-1 -> 71-2:0:42-br-utokyo-1
+EU-Asia-Sorbonne-UTokyo,55000,71-2:0:26-br-sorb-1 -> 71-20965-br-par-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-559-br-switch-1 -> 71-11537-br-i2-2 -> 71-1781-br-kisti-2 -> 71-1781-br-kisti-1 -> 71-2:0:42-br-utokyo-1
+EU-Asia-Sorbonne-UTokyo,65000,71-2:0:26-br-sorb-1 -> 71-20965-br-par-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-1781-br-kisti-2 -> 71-1781-br-kisti-1 -> 71-2:0:42-br-utokyo-1
+EU-Asia-Sorbonne-UTokyo,70000,71-2:0:26-br-sorb-1 -> 71-20965-br-par-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-11537-br-i2-2 -> 71-1781-br-kisti-2 -> 71-1781-br-kisti-1 -> 71-2:0:42-br-utokyo-1
+EU-Asia-Sorbonne-UTokyo,80000,71-2:0:26-br-sorb-1 -> 71-20965-br-par-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-1781-br-kisti-2 -> 71-1781-br-kisti-1 -> 71-2:0:42-br-utokyo-1
+EU-Asia-Sorbonne-UTokyo,85000,71-2:0:26-br-sorb-1 -> 71-20965-br-par-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-559-br-switch-1 -> 71-11537-br-i2-2 -> 71-1781-br-kisti-2 -> 71-1781-br-kisti-1 -> 71-2:0:42-br-utokyo-1
+EU-Asia-Sorbonne-UTokyo,90000,71-2:0:26-br-sorb-1 -> 71-20965-br-par-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-11537-br-i2-2 -> 71-1781-br-kisti-2 -> 71-1781-br-kisti-1 -> 71-2:0:42-br-utokyo-1
+EU-Asia-Sorbonne-UTokyo,95000,71-2:0:26-br-sorb-1 -> 71-20965-br-par-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-1781-br-kisti-2 -> 71-1781-br-kisti-1 -> 71-2:0:42-br-utokyo-1
+EU-Asia-Sorbonne-UTokyo,100000,71-2:0:26-br-sorb-1 -> 71-20965-br-par-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-11537-br-i2-2 -> 71-1781-br-kisti-2 -> 71-1781-br-kisti-1 -> 71-2:0:42-br-utokyo-1
+EU-Asia-Sorbonne-UTokyo,105000,71-2:0:26-br-sorb-1 -> 71-20965-br-par-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-559-br-switch-1 -> 71-11537-br-i2-2 -> 71-1781-br-kisti-2 -> 71-1781-br-kisti-1 -> 71-2:0:42-br-utokyo-1
+EU-Asia-Sorbonne-UTokyo,110000,71-2:0:26-br-sorb-1 -> 71-20965-br-par-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-11537-br-i2-2 -> 71-1781-br-kisti-2 -> 71-1781-br-kisti-1 -> 71-2:0:42-br-utokyo-1
+EU-Asia-Sorbonne-UTokyo,120000,71-2:0:26-br-sorb-1 -> 71-20965-br-par-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-559-br-switch-1 -> 71-11537-br-i2-2 -> 71-1781-br-kisti-2 -> 71-1781-br-kisti-1 -> 71-2:0:42-br-utokyo-1
+EU-Asia-Sorbonne-UTokyo,130000,71-2:0:26-br-sorb-1 -> 71-20965-br-par-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-11537-br-i2-2 -> 71-1781-br-kisti-2 -> 71-1781-br-kisti-1 -> 71-2:0:42-br-utokyo-1
+EU-Asia-Sorbonne-UTokyo,140000,71-2:0:26-br-sorb-1 -> 71-20965-br-par-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-1781-br-kisti-2 -> 71-1781-br-kisti-1 -> 71-2:0:42-br-utokyo-1
+EU-Asia-Sorbonne-UTokyo,145000,71-2:0:26-br-sorb-1 -> 71-20965-br-par-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-559-br-switch-1 -> 71-11537-br-i2-2 -> 71-1781-br-kisti-2 -> 71-1781-br-kisti-1 -> 71-2:0:42-br-utokyo-1

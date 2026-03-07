@@ -118,6 +118,9 @@ class Router(Node):
 
             # Forward beacon to neighbors (not in AS path)
             for neighbor_id, link in self.ports.items():
+                # Beacons should propagate only across routers, not to end hosts.
+                if ',' in neighbor_id:
+                    continue
                 # Avoid router-level loops (additional safety check)
                 if neighbor_id not in packet.path:
                     # Clone beacon and forward

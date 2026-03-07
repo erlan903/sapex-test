@@ -58,8 +58,75 @@ class Simulation:
         scenario['flows'] = traffic['flows']
         scenario['events'] = traffic['events']
         scenario['duration_ms'] = traffic.get('duration_ms', 1000)
+        scenario['drain'] = traffic.get('drain', scenario.get('drain', {}))
 
         return scenario
+
+    def _metrics_snapshot(self):
+        """Capture a compact traffic progress snapshot for drain convergence checks."""
+        sent = 0
+        received = 0
+        lost = 0
+
+        if self.metrics_collector:
+            sent = self.metrics_collector.total_packets_sent
+            received = self.metrics_collector.total_packets_received
+            lost = self.metrics_collector.total_packets_lost
+
+        # Estimate queued packets still waiting on links.
+        queued_packets = 0
+        seen_links = set()
+        for node in self.topology.nodes.values():
+            for link in node.ports.values():
+                link_id = id(link)
+                if link_id in seen_links:
+                    continue
+                seen_links.add(link_id)
+                queued_packets += len(link.queue.items)
+
+        return sent, received, lost, queued_packets
+
+    def _run_drain_phase(self):
+        """Run optional post-traffic drain to let in-flight packets settle."""
+        drain_cfg = self.traffic_scenario.get('drain', {}) or {}
+        enabled = drain_cfg.get('enabled', True)
+        if not enabled:
+            return
+
+        max_drain_ms = int(drain_cfg.get('max_ms', 60000))
+        idle_window_ms = int(drain_cfg.get('idle_window_ms', 5000))
+        check_interval_ms = int(drain_cfg.get('check_interval_ms', 500))
+
+        if max_drain_ms <= 0 or check_interval_ms <= 0:
+            return
+
+        print(
+            f"\nStarting drain phase (max={max_drain_ms}ms, "
+            f"idle_window={idle_window_ms}ms, check_interval={check_interval_ms}ms)..."
+        )
+
+        drain_start = self.env.now
+        deadline = drain_start + max_drain_ms
+        previous_snapshot = None
+        unchanged_ms = 0
+
+        while self.env.now < deadline:
+            step_until = min(deadline, self.env.now + check_interval_ms)
+            self.env.run(until=step_until)
+
+            snapshot = self._metrics_snapshot()
+            if snapshot == previous_snapshot:
+                unchanged_ms += check_interval_ms
+            else:
+                unchanged_ms = 0
+                previous_snapshot = snapshot
+
+            _, _, _, queued_packets = snapshot
+            if queued_packets == 0 and unchanged_ms >= idle_window_ms:
+                print(f"Drain phase converged at t={self.env.now:.2f}ms (queues empty, counters stable).")
+                return
+
+        print(f"Drain phase reached max duration at t={self.env.now:.2f}ms.")
 
     def run(self):
         print("Starting beaconing process...")
@@ -135,6 +202,10 @@ class Simulation:
         simulation_duration = self.traffic_scenario.get("duration_ms", 1000)
         print(f"\nRunning simulation for {simulation_duration}ms...")
         self.env.run(until=simulation_duration)
+
+        # Optional post-duration settling period for in-flight packets.
+        self._run_drain_phase()
+
         print("\nSimulation finished.")
         self.print_results()
 

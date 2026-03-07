@@ -15,7 +15,17 @@ class HopInfo:
         return f"HopInfo(AS={self.as_id}, Router={self.router_id})"
 
 class Packet:
-    def __init__(self, source, destination, path, payload="", size=1500, is_beacon=False):
+    def __init__(
+        self,
+        source,
+        destination,
+        path,
+        payload="",
+        size=1500,
+        is_beacon=False,
+        flow_name=None,
+        loss_callback=None,
+    ):
         self.source = source
         self.destination = destination
         self.path = path
@@ -23,6 +33,8 @@ class Packet:
         self.size = size # in bytes
         self.is_beacon = is_beacon
         self.creation_time = 0
+        self.flow_name = flow_name
+        self.loss_callback = loss_callback
 
     def clone(self):
         return copy.deepcopy(self)

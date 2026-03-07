@@ -11,6 +11,7 @@ class Topology:
         self.nodes = {}
         self.hosts = {}
         self.core_ases = set()
+        self.as_border_routers = {}
         self._load_from_json(filename)
 
     def _load_from_json(self, filename):
@@ -21,11 +22,14 @@ class Topology:
             if as_details.get("core", False):
                 self.core_ases.add(isd_as)
 
+            self.as_border_routers[isd_as] = []
+
             # Add routers (border and internal)
             for router_id, router_details in as_details.get("border_routers", {}).items():
                 router = Router(self.env, f"{isd_as}-{router_id}")
                 self.nodes[router.node_id] = router
                 self.graph.add_node(router.node_id, instance=router)
+                self.as_border_routers[isd_as].append(router.node_id)
 
             # Add hosts
             for host_id, host_details in as_details.get("hosts", {}).items():
@@ -52,11 +56,27 @@ class Topology:
                     if not self.graph.has_edge(local_router_id, remote_router_id_full):
                         self._add_link(local_router_id, remote_router_id_full, link['latency_ms'], link['bandwidth_mbps'])
 
+        # Add synthetic intra-AS links between border routers so combined paths can
+        # traverse inside an AS between different edge routers.
+        intra_as_latency_ms = 1
+        intra_as_bandwidth_mbps = 10000
+        for isd_as, routers in self.as_border_routers.items():
+            if len(routers) < 2:
+                continue
+            for i in range(len(routers)):
+                for j in range(i + 1, len(routers)):
+                    r1 = routers[i]
+                    r2 = routers[j]
+                    if not self.graph.has_edge(r1, r2):
+                        self._add_link(r1, r2, intra_as_latency_ms, intra_as_bandwidth_mbps)
+
     def _add_link(self, from_node, to_node, latency, bandwidth):
         self.graph.add_edge(from_node, to_node, latency=latency, bandwidth=bandwidth)
-        # Create the physical link component
-        link_component = self.nodes[from_node].add_link(to_node, latency, bandwidth, self.nodes[to_node])
-        self.nodes[to_node].ports[from_node] = link_component
+        # Create directional links for both directions.
+        # Reusing a single link object for both directions causes incorrect
+        # forwarding because each Link has exactly one destination endpoint.
+        self.nodes[from_node].add_link(to_node, latency, bandwidth, self.nodes[to_node])
+        self.nodes[to_node].add_link(from_node, latency, bandwidth, self.nodes[from_node])
 
 
     def get_host(self, host_id):
@@ -65,25 +85,55 @@ class Topology:
     def get_node(self, node_id):
         return self.nodes.get(node_id)
 
+    def all_router_paths(self, from_router_id, to_router_id):
+        """
+        Return all simple router-to-router paths.
+        This is used by beacon/path stitching to provide feasible compositions.
+        Path scoring/ranking is intentionally handled by path-selection algorithms.
+        """
+        if from_router_id not in self.graph or to_router_id not in self.graph:
+            return []
+
+        router_nodes = [
+            node_id for node_id, node in self.nodes.items()
+            if isinstance(node, Router)
+        ]
+        router_subgraph = self.graph.subgraph(router_nodes)
+
+        try:
+            return list(
+                nx.all_simple_paths(
+                    router_subgraph,
+                    source=from_router_id,
+                    target=to_router_id,
+                    cutoff=max(1, len(router_nodes) - 1),
+                )
+            )
+        except (nx.NetworkXNoPath, nx.NodeNotFound):
+            return []
+
     def initiate_beaconing(self, path_selection_algorithm):
         """Start beaconing processes from core ASes and set up path registration for all routers"""
         beaconing_processes = {}
 
-        # Create beaconing processes for core ASes
+        # Create beaconing processes for all core-AS border routers.
+        # This is required in topologies where different core routers connect to
+        # different peers/leaf ASes.
         for isd_as in self.core_ases:
-            # Start beaconing from the first border router of the core AS
-            router_id = list(self.graph.neighbors(next(h for h in self.hosts if h.startswith(isd_as))))[0]
-            start_router = self.get_node(router_id)
+            for router_id in self.as_border_routers.get(isd_as, []):
+                start_router = self.get_node(router_id)
+                if not start_router:
+                    continue
 
-            beaconing_process = BeaconingProcess(
-                self.env,
-                start_router,
-                path_selection_algorithm,
-                interval=1000,
-                topology=self
-            )
-            beaconing_processes[isd_as] = beaconing_process
-            self.env.process(beaconing_process.start())
+                beaconing_process = BeaconingProcess(
+                    self.env,
+                    start_router,
+                    path_selection_algorithm,
+                    interval=1000,
+                    topology=self
+                )
+                beaconing_processes[f"{isd_as}:{router_id}"] = beaconing_process
+                self.env.process(beaconing_process.start())
 
         # Set beaconing process reference on all routers for path registration
         # All routers need access to a beaconing process to register discovered paths

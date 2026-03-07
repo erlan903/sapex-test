@@ -1,0 +1,27 @@
+flow_name,sim_time_ms,new_path
+EU-IntraRegion-OVGU-ETHZ,3000,71-2:0:1a-br-ovgu-1 -> 71-20965-br-fra-1 -> 71-20965-br-par-1 -> 71-20965-br-fra-2 -> 71-11537-br-i2-2 -> 71-559-br-switch-1 -> 71-2:0:25-br-ethz-1
+EU-IntraRegion-OVGU-ETHZ,8000,71-2:0:1a-br-ovgu-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-559-br-switch-1 -> 71-2:0:25-br-ethz-1
+EU-IntraRegion-OVGU-ETHZ,13000,71-2:0:1a-br-ovgu-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-11537-br-i2-2 -> 71-559-br-switch-1 -> 71-2:0:25-br-ethz-1
+EU-IntraRegion-OVGU-ETHZ,23000,71-2:0:1a-br-ovgu-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-1781-br-kisti-2 -> 71-11537-br-i2-2 -> 71-559-br-switch-1 -> 71-2:0:25-br-ethz-1
+EU-IntraRegion-OVGU-ETHZ,28000,71-2:0:1a-br-ovgu-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-11537-br-i2-2 -> 71-559-br-switch-1 -> 71-2:0:25-br-ethz-1
+InterISD-ETHZ-Anapaya,3500,71-2:0:25-br-ethz-1 -> 71-559-br-switch-1 -> 71-11537-br-i2-2 -> 71-20965-br-fra-2 -> 64-58057-br-ana-1
+InterISD-ETHZ-Anapaya,8500,71-2:0:25-br-ethz-1 -> 71-559-br-switch-1 -> 71-11537-br-i2-2 -> 71-1781-br-kisti-2 -> 71-20965-br-fra-2 -> 64-58057-br-ana-1
+InterISD-ETHZ-Anapaya,13500,71-2:0:25-br-ethz-1 -> 71-559-br-switch-1 -> 71-20965-br-fra-2 -> 64-58057-br-ana-1
+InterISD-ETHZ-Anapaya,18500,71-2:0:25-br-ethz-1 -> 71-559-br-switch-1 -> 71-11537-br-i2-2 -> 71-1781-br-kisti-2 -> 71-20965-br-fra-2 -> 64-58057-br-ana-1
+InterISD-ETHZ-Anapaya,23500,71-2:0:25-br-ethz-1 -> 71-559-br-switch-1 -> 71-20965-br-fra-2 -> 64-58057-br-ana-1
+Transatlantic-CMU-TUBerlin,4000,71-2:0:30-br-cmu-1 -> 71-11537-br-i2-1 -> 71-11537-br-i2-2 -> 71-20965-br-fra-2 -> 71-20965-br-par-1 -> 71-20965-br-fra-1 -> 71-2:0:1b-br-tub-1
+Transatlantic-CMU-TUBerlin,9000,71-2:0:30-br-cmu-1 -> 71-11537-br-i2-1 -> 71-11537-br-i2-2 -> 71-559-br-switch-1 -> 71-20965-br-fra-2 -> 71-20965-br-fra-1 -> 71-2:0:1b-br-tub-1
+Transatlantic-CMU-TUBerlin,14000,71-2:0:30-br-cmu-1 -> 71-11537-br-i2-1 -> 71-11537-br-i2-2 -> 71-1781-br-kisti-2 -> 71-20965-br-fra-2 -> 71-20965-br-fra-1 -> 71-2:0:1b-br-tub-1
+Transatlantic-CMU-TUBerlin,19000,71-2:0:30-br-cmu-1 -> 71-11537-br-i2-1 -> 71-11537-br-i2-2 -> 71-20965-br-fra-2 -> 71-20965-br-fra-1 -> 71-2:0:1b-br-tub-1
+Transatlantic-CMU-TUBerlin,24000,71-2:0:30-br-cmu-1 -> 71-11537-br-i2-1 -> 71-11537-br-i2-2 -> 71-1781-br-kisti-2 -> 71-20965-br-fra-2 -> 71-20965-br-fra-1 -> 71-2:0:1b-br-tub-1
+Transatlantic-CMU-TUBerlin,29000,71-2:0:30-br-cmu-1 -> 71-11537-br-i2-1 -> 71-11537-br-i2-2 -> 71-559-br-switch-1 -> 71-20965-br-fra-2 -> 71-20965-br-fra-1 -> 71-2:0:1b-br-tub-1
+Transpacific-KAIST-MIT,4000,71-2:0:40-br-kaist-1 -> 71-1781-br-kisti-1 -> 71-1781-br-kisti-2 -> 71-20965-br-fra-2 -> 71-11537-br-i2-2 -> 71-11537-br-i2-1 -> 71-2:0:31-br-mit-1
+Transpacific-KAIST-MIT,9000,71-2:0:40-br-kaist-1 -> 71-1781-br-kisti-1 -> 71-1781-br-kisti-2 -> 71-11537-br-i2-2 -> 71-11537-br-i2-1 -> 71-2:0:31-br-mit-1
+Transpacific-KAIST-MIT,14000,71-2:0:40-br-kaist-1 -> 71-1781-br-kisti-1 -> 71-1781-br-kisti-2 -> 71-20965-br-fra-2 -> 71-559-br-switch-1 -> 71-11537-br-i2-2 -> 71-11537-br-i2-1 -> 71-2:0:31-br-mit-1
+Transpacific-KAIST-MIT,29000,71-2:0:40-br-kaist-1 -> 71-1781-br-kisti-1 -> 71-1781-br-kisti-2 -> 71-11537-br-i2-2 -> 71-11537-br-i2-1 -> 71-2:0:31-br-mit-1
+EU-Asia-Sorbonne-UTokyo,5000,71-2:0:26-br-sorb-1 -> 71-20965-br-par-1 -> 71-20965-br-fra-2 -> 71-1781-br-kisti-2 -> 71-1781-br-kisti-1 -> 71-2:0:42-br-utokyo-1
+EU-Asia-Sorbonne-UTokyo,10000,71-2:0:26-br-sorb-1 -> 71-20965-br-par-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-11537-br-i2-2 -> 71-1781-br-kisti-2 -> 71-1781-br-kisti-1 -> 71-2:0:42-br-utokyo-1
+EU-Asia-Sorbonne-UTokyo,15000,71-2:0:26-br-sorb-1 -> 71-20965-br-par-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-1781-br-kisti-2 -> 71-1781-br-kisti-1 -> 71-2:0:42-br-utokyo-1
+EU-Asia-Sorbonne-UTokyo,20000,71-2:0:26-br-sorb-1 -> 71-20965-br-par-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-559-br-switch-1 -> 71-11537-br-i2-2 -> 71-1781-br-kisti-2 -> 71-1781-br-kisti-1 -> 71-2:0:42-br-utokyo-1
+EU-Asia-Sorbonne-UTokyo,25000,71-2:0:26-br-sorb-1 -> 71-20965-br-par-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-11537-br-i2-2 -> 71-1781-br-kisti-2 -> 71-1781-br-kisti-1 -> 71-2:0:42-br-utokyo-1
+EU-Asia-Sorbonne-UTokyo,30000,71-2:0:26-br-sorb-1 -> 71-20965-br-par-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-559-br-switch-1 -> 71-11537-br-i2-2 -> 71-1781-br-kisti-2 -> 71-1781-br-kisti-1 -> 71-2:0:42-br-utokyo-1

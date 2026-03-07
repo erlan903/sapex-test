@@ -63,7 +63,14 @@ class Application:
                     continue
 
             # Use current path for packet
-            packet = Packet(self.source.node_id, self.destination.node_id, self.current_path, size=packet_size)
+            packet = Packet(
+                self.source.node_id,
+                self.destination.node_id,
+                self.current_path,
+                size=packet_size,
+                flow_name=self.flow_name,
+                loss_callback=self.notify_loss,
+            )
             packet.creation_time = self.env.now
             self.source.send_packet(packet)
             self.packets_sent += 1
@@ -73,7 +80,8 @@ class Application:
     
     def receive_handler(self):
         while True:
-            packet = yield self.source.in_queue.get()
+            # Receive at the destination host queue for this flow.
+            packet = yield self.destination.in_queue.get()
             latency = self.env.now - packet.creation_time
             self.results["latencies"].append(latency)
             if self.metrics_collector:

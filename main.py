@@ -171,10 +171,10 @@ def main():
     # Attach metrics collector to simulation
     sim.metrics_collector = metrics
     
-    # Simulation.run() already drives the SimPy environment up to the configured
-    # scenario duration. Running env.run() again can block forever because
-    # background processes like beaconing are periodic.
-    sim.run()
+    # Run until the simulation coroutine finishes; this avoids getting stuck on
+    # periodic background processes (e.g., beaconing) that never terminate.
+    sim_process = sim.env.process(sim.run())
+    sim.env.run(until=sim_process)
 
     metrics.stop_collection()
 

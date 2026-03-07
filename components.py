@@ -67,6 +67,12 @@ class Router(Node):
         """Set the beaconing process for path registration"""
         self.beaconing_process = beaconing_process
 
+    def _report_packet_loss(self, packet):
+        """Notify application-level loss handler when a data packet is dropped."""
+        callback = getattr(packet, 'loss_callback', None)
+        if callable(callback):
+            callback(packet)
+
     def receive_packet(self, packet):
         # Beacon packets are handled by the beaconing process logic
         if packet.is_beacon:
@@ -143,21 +149,42 @@ class Router(Node):
                     print(f"[{self.env.now:.2f}] Router {self.node_id}: Invalid probe path. Dropping.")
                     return
 
+            # If destination is a directly connected host, deliver it.
+            if packet.destination in self.ports:
+                self.ports[packet.destination].enqueue(packet)
+                return
+
             if packet.destination == self.node_id:
-                # Packet for a host in this AS, find the host link
-                # This part needs a more complex routing logic in a full implementation
-                pass
+                return
             else:
-                # Forward along the path
+                # Forward along the path using a cursor to avoid ambiguity when a
+                # router ID appears more than once in a composed path.
                 try:
-                    current_hop_index = packet.path.index(self.node_id)
+                    if not hasattr(packet, 'forward_hops'):
+                        packet.forward_hops = 0
+                    packet.forward_hops += 1
+
+                    # Guard against forwarding loops on malformed paths.
+                    if packet.forward_hops > (len(packet.path) + 2):
+                        print(f"[{self.env.now:.2f}] Router {self.node_id}: Loop guard drop for packet to {packet.destination}.")
+                        self._report_packet_loss(packet)
+                        return
+
+                    if hasattr(packet, 'path_cursor') and packet.path_cursor is not None:
+                        current_hop_index = packet.path_cursor
+                    else:
+                        current_hop_index = packet.path.index(self.node_id)
+
                     next_hop = packet.path[current_hop_index + 1]
                     if next_hop in self.ports:
+                        packet.path_cursor = current_hop_index + 1
                         self.ports[next_hop].enqueue(packet)
                     else:
                         print(f"[{self.env.now:.2f}] Router {self.node_id}: Dead end for packet to {packet.destination}. Dropping.")
+                        self._report_packet_loss(packet)
                 except (ValueError, IndexError):
                     print(f"[{self.env.now:.2f}] Router {self.node_id}: Invalid path on packet. Dropping.")
+                    self._report_packet_loss(packet)
 
 class Host(Node):
     def __init__(self, env, node_id, topology):

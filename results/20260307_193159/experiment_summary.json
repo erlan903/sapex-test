@@ -1,0 +1,15 @@
+{
+  "timestamp": "20260307_193159",
+  "total_experiments": 1,
+  "successful": 1,
+  "failed": 0,
+  "timeout": 0,
+  "errors": 0,
+  "experiments": [
+    {
+      "experiment": "sapex__scenario_B.json__topologies_sciera_large.json__np1000_tr2000_cd100_ld1.0_b100",
+      "status": "success",
+      "returncode": 0
+    }
+  ]
+}

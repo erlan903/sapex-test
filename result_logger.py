@@ -100,6 +100,7 @@ class ResultLogger:
             "total_packets_sent": global_stats.get("total_packets_sent", 0),
             "total_packets_received": global_stats.get("total_packets_received", 0),
             "total_packets_lost": global_stats.get("total_packets_lost", 0),
+            "total_packets_unaccounted": global_stats.get("total_packets_unaccounted", 0),
             "packet_loss_rate_percent": global_stats.get("packet_loss_rate_percent", 0),
             "latency_avg_ms": global_stats.get("latency_avg_ms", 0),
             "latency_median_ms": global_stats.get("latency_median_ms", 0),

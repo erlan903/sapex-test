@@ -135,11 +135,13 @@ class MetricsCollector:
         transfer_time = end - start if end > start else 0
         loss_rate = (lost / sent * 100) if sent > 0 else 0
         throughput_mbps = (bytes_sent * 8 / (transfer_time * 1000)) if transfer_time > 0 else 0
+        unaccounted = max(0, sent - received - lost)
 
         stats = {
             "packets_sent": sent,
             "packets_received": received,
             "packets_lost": lost,
+            "packets_unaccounted": unaccounted,
             "loss_rate_percent": round(loss_rate, 4),
             "bytes_sent": bytes_sent,
             "transfer_time_ms": round(transfer_time, 2),
@@ -190,12 +192,14 @@ class MetricsCollector:
         total_sent = self.total_packets_sent
         total_received = self.total_packets_received
         total_lost = self.total_packets_lost
+        total_unaccounted = max(0, total_sent - total_received - total_lost)
         loss_rate = (total_lost / total_sent * 100) if total_sent > 0 else 0
 
         stats = {
             "total_packets_sent": total_sent,
             "total_packets_received": total_received,
             "total_packets_lost": total_lost,
+            "total_packets_unaccounted": total_unaccounted,
             "packet_loss_rate_percent": round(loss_rate, 4),
             "total_path_switches": self.get_total_path_switches(),
         }

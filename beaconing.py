@@ -91,6 +91,118 @@ class BeaconingProcess:
             if origin_as != receiving_as:
                 self._create_combined_paths(origin_as, receiving_as, router_path, reverse_path)
 
+            # Expand transitive combinations so multi-core leaf-to-leaf paths are discovered.
+            self._expand_transitive_combinations()
+
+    def _register_composed_path(self, src_as, dst_as, router_path):
+        """Register a composed path if it is new and loop-free at AS-level."""
+        if src_as == dst_as:
+            return False
+
+        if self._has_as_loop(router_path):
+            return False
+
+        key = (src_as, dst_as)
+        if key not in self.path_selection_algorithm.path_store:
+            self.path_selection_algorithm.path_store[key] = []
+
+        if router_path in self.path_selection_algorithm.path_store[key]:
+            return False
+
+        self.path_selection_algorithm.path_store[key].append(router_path)
+        return True
+
+    def _has_as_loop(self, router_path):
+        """
+        Reject paths that revisit a previously left AS (avoids composition cycles).
+        Consecutive routers in the same AS are valid for intra-AS stitching.
+        """
+        seen = set()
+        previous_as = None
+        for router_id in router_path:
+            as_id = self.extract_as_from_router_id(router_id)
+            if as_id != previous_as:
+                if as_id in seen:
+                    return True
+                seen.add(as_id)
+            previous_as = as_id
+        return False
+
+    def _bridge_within_as(self, as_id, from_router, to_router):
+        """Find all router paths inside a single AS between two border routers."""
+        if from_router == to_router:
+            return [[from_router]]
+
+        if not self.topology:
+            return []
+
+        try:
+            candidate_paths = self.topology.all_router_paths(from_router, to_router)
+        except Exception:
+            return []
+
+        if not candidate_paths:
+            return []
+
+        valid_paths = []
+        for path in candidate_paths:
+            # Ensure bridge does not leave the intended AS.
+            if all(self.extract_as_from_router_id(router_id) == as_id for router_id in path):
+                valid_paths.append(path)
+        return valid_paths
+
+    def _stitch_paths(self, left_path, right_path, middle_as):
+        """Compose src->middle and middle->dst router paths into one or more src->dst paths."""
+        if not left_path or not right_path:
+            return []
+
+        left_tail = left_path[-1]
+        right_head = right_path[0]
+        tail_as = self.extract_as_from_router_id(left_tail)
+        head_as = self.extract_as_from_router_id(right_head)
+
+        if tail_as != middle_as or head_as != middle_as:
+            return []
+
+        if left_tail == right_head:
+            return [left_path + right_path[1:]]
+
+        bridges = self._bridge_within_as(middle_as, left_tail, right_head)
+        if not bridges:
+            return []
+
+        stitched = []
+        for bridge in bridges:
+            stitched.append(left_path + bridge[1:] + right_path[1:])
+        return stitched
+
+    def _expand_transitive_combinations(self):
+        """
+        Build transitive path combinations:
+          if we know A->B and B->C, compose A->C.
+        """
+        changed = True
+        while changed:
+            changed = False
+            all_items = list(self.path_selection_algorithm.path_store.items())
+
+            for (src_as, mid_as), left_paths in all_items:
+                for (mid_as_2, dst_as), right_paths in all_items:
+                    if mid_as != mid_as_2:
+                        continue
+                    if src_as == dst_as:
+                        continue
+
+                    for left_path in left_paths:
+                        for right_path in right_paths:
+                            combined_paths = self._stitch_paths(left_path, right_path, mid_as)
+                            for combined in combined_paths:
+                                if self._register_composed_path(src_as, dst_as, combined):
+                                    changed = True
+                                    print(
+                                        f"[{self.env.now:.2f}] Created transit path {src_as} -> {dst_as}: {combined}"
+                                    )
+
     def _create_combined_paths(self, core_as, leaf_as, down_path, up_path):
         """Create combined paths between leaf ASes through the core"""
         # Find all paths in the path store that go through this core AS
@@ -102,16 +214,8 @@ class BeaconingProcess:
                 # - paths: src_as -> core_as (existing up-segment)
                 # We need to create: src_as -> core_as -> leaf_as
                 for existing_path in paths:
-                    # Combine: src_as -> core -> leaf_as
-                    # The existing_path goes from src_as to core
-                    # The down_path goes from core to leaf_as
-                    # We need to connect them at the core router
-                    combined_path = existing_path[:-1] + down_path
-                    combined_key = (src_as, leaf_as)
-
-                    if combined_key not in self.path_selection_algorithm.path_store:
-                        self.path_selection_algorithm.path_store[combined_key] = []
-
-                    if combined_path not in self.path_selection_algorithm.path_store[combined_key]:
-                        self.path_selection_algorithm.path_store[combined_key].append(combined_path)
-                        print(f"[{self.env.now:.2f}] Created combined path {src_as} -> {leaf_as}: {combined_path}")
+                    # Combine using router-level stitching at the core AS boundary.
+                    combined_paths = self._stitch_paths(existing_path, down_path, core_as)
+                    for combined_path in combined_paths:
+                        if self._register_composed_path(src_as, leaf_as, combined_path):
+                            print(f"[{self.env.now:.2f}] Created combined path {src_as} -> {leaf_as}: {combined_path}")

@@ -1,2 +1,0 @@
-flow_name,sim_time_ms,new_path
-WebServerTraffic,3000,71-2:0:1a-br-ovgu-1 -> 71-20965-br-fra-1 -> 71-2:0:25-br-ethz-1

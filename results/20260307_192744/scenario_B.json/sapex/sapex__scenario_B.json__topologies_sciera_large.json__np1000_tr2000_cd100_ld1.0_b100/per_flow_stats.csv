@@ -1,6 +1,0 @@
-flow_name,packets_sent,packets_received,packets_lost,packets_unaccounted,loss_rate_percent,bytes_sent,transfer_time_ms,throughput_mbps,path_switches,latency_min_ms,latency_max_ms,latency_avg_ms,latency_median_ms,latency_p95_ms,latency_p99_ms,latency_stddev_ms
-EU-IntraRegion-OVGU-ETHZ,5461,0,3370,2091,61.7103,8191500,0,0,2,0,0,0,0,0,0,0
-InterISD-ETHZ-Anapaya,2730,0,2730,0,100.0,4095000,0,0,5,0,0,0,0,0,0,0
-Transatlantic-CMU-TUBerlin,4096,0,4096,0,100.0,6144000,0,0,4,0,0,0,0,0,0,0
-Transpacific-KAIST-MIT,3413,0,3413,0,100.0,5119500,0,0,2,0,0,0,0,0,0,0
-EU-Asia-Sorbonne-UTokyo,3413,0,3413,0,100.0,5119500,0,0,4,0,0,0,0,0,0,0

@@ -1,0 +1,16 @@
+{
+  "topology": "topologies/sciera_large.json",
+  "traffic": "scenarios/shared_bottleneck.json",
+  "algorithm": "random",
+  "scenario": "shared_bottleneck",
+  "output_dir": "results\\20260307_210937\\shared_bottleneck\\random",
+  "experiment_name": "random__shared_bottleneck__sciera_large__np5000_tr2000_cd5000_ld0.5_b100",
+  "parameters": {
+    "num_packets": 5000,
+    "packet_size_bytes": 1500,
+    "t_round_ms": 2000,
+    "cooldown_ms": 5000,
+    "lambda_div": 0.5,
+    "point_budget": 100
+  }
+}

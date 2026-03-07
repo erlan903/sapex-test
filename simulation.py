@@ -13,8 +13,7 @@ class Simulation:
         self.env = simpy.Environment()
              
         # Load traffic scenario (must be after event_manager is created)
-        self.traffic_scenario = self.load_traffic_scenario(traffic_file)
-        print(self.traffic_scenario)
+        self.traffic_scenario = self.load_traffic_scenario(traffic_file, topology_file)
 
         self.topology = Topology(self.env, self.traffic_scenario['topology'])
         self.path_selection_algorithm = algorithm_class(self.topology)
@@ -40,7 +39,28 @@ class Simulation:
             self.event_manager.load_events(self.traffic_scenario)
 
 
-    def load_traffic_scenario(self, filename):
+    def _resolve_path(self, maybe_path, base_dir):
+        """Resolve paths using absolute, CWD-relative, script-relative, then scenario-relative lookup."""
+        if not maybe_path:
+            return None
+
+        if os.path.isabs(maybe_path):
+            return maybe_path if os.path.isfile(maybe_path) else None
+
+        candidates = [
+            os.path.normpath(maybe_path),
+            os.path.normpath(os.path.join(os.getcwd(), maybe_path)),
+            os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), maybe_path)),
+            os.path.normpath(os.path.join(base_dir, maybe_path)),
+        ]
+
+        for path in candidates:
+            if os.path.isfile(path):
+                return path
+
+        return None
+
+    def load_traffic_scenario(self, filename, topology_file=None):
         print(f"Loading traffic scenario from {filename}...")
         if not os.path.isfile(filename):
             raise FileNotFoundError(f"Traffic scenario file '{filename}' not found.")
@@ -48,19 +68,47 @@ class Simulation:
         with open(filename, 'r') as f:
             scenario = json.load(f)
 
-        traffic_file = scenario.get('traffic')
-        if not traffic_file or not os.path.isfile(traffic_file):
-            raise FileNotFoundError(f"Traffic file '{traffic_file}' not found or not specified in scenario.")
+        scenario_dir = os.path.dirname(os.path.abspath(filename))
+        loaded = dict(scenario)
 
-        with open(traffic_file, 'r') as f:
-            traffic = json.load(f)
+        # Supported format A (wrapper): {"topology": ..., "traffic": "traffic.json", ...}
+        # Supported format B (self-contained): contains flows/events directly.
+        traffic_ref = scenario.get('traffic')
+        if traffic_ref is not None:
+            traffic_path = self._resolve_path(traffic_ref, scenario_dir)
+            if not traffic_path or not os.path.isfile(traffic_path):
+                raise FileNotFoundError(
+                    f"Traffic file '{traffic_ref}' resolved to '{traffic_path}' was not found."
+                )
 
-        scenario['flows'] = traffic['flows']
-        scenario['events'] = traffic['events']
-        scenario['duration_ms'] = traffic.get('duration_ms', 1000)
-        scenario['drain'] = traffic.get('drain', scenario.get('drain', {}))
+            with open(traffic_path, 'r') as f:
+                traffic = json.load(f)
 
-        return scenario
+            loaded['flows'] = traffic.get('flows', [])
+            loaded['events'] = traffic.get('events', [])
+            loaded['duration_ms'] = traffic.get('duration_ms', loaded.get('duration_ms', 1000))
+            loaded['drain'] = traffic.get('drain', loaded.get('drain', {}))
+        else:
+            if 'flows' not in loaded:
+                raise ValueError(
+                    "Scenario file must define either 'traffic' or inline 'flows'."
+                )
+            loaded['events'] = loaded.get('events', [])
+            loaded['duration_ms'] = loaded.get('duration_ms', 1000)
+            loaded['drain'] = loaded.get('drain', {})
+
+        topology_ref = loaded.get('topology') or topology_file
+        if not topology_ref:
+            raise ValueError("Topology is not specified (missing scenario 'topology' and CLI topology).")
+
+        topology_path = self._resolve_path(topology_ref, scenario_dir)
+        if not topology_path or not os.path.isfile(topology_path):
+            raise FileNotFoundError(
+                f"Topology file '{topology_ref}' resolved to '{topology_path}' was not found."
+            )
+        loaded['topology'] = topology_path
+
+        return loaded
 
     def _metrics_snapshot(self):
         """Capture a compact traffic progress snapshot for drain convergence checks."""

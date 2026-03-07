@@ -1,0 +1,16 @@
+{
+  "topology": "topologies/sciera_large.json",
+  "traffic": "scenarios/thundering_herd.json",
+  "algorithm": "lowest_latency",
+  "scenario": "thundering_herd",
+  "output_dir": "results\\20260307_211551\\thundering_herd\\lowest_latency",
+  "experiment_name": "lowest_latency__thundering_herd__sciera_large__np1000_tr2000_cd10000_ld0.5_b100",
+  "parameters": {
+    "num_packets": 1000,
+    "packet_size_bytes": 1500,
+    "t_round_ms": 2000,
+    "cooldown_ms": 10000,
+    "lambda_div": 0.5,
+    "point_budget": 100
+  }
+}

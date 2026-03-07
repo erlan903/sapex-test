@@ -1,0 +1,2 @@
+path,packets_forwarded,bytes_forwarded
+71-2:0:1a-br-ovgu-1 -> 71-20965-br-fra-1 -> 71-2:0:25-br-ethz-1,3001,4501500

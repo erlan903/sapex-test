@@ -1,0 +1,2 @@
+experiment_name,algorithm,scenario,topology,num_packets,packet_size_bytes,t_round_ms,cooldown_ms,lambda_div,point_budget,total_packets_sent,total_packets_received,total_packets_lost,total_packets_unaccounted,packet_loss_rate_percent,latency_avg_ms,latency_median_ms,latency_p95_ms,latency_p99_ms,latency_min_ms,latency_max_ms,total_path_switches,wall_clock_seconds
+sapex__scenario_A.json__topology.json__np1000_tr2000_cd100_ld1.0_b100,sapex,scenario_A.json,topology.json,1000,1500,2000,100,1.0,100,3001,157,0,2844,0.0,1617.3065,1503.15,3000,7021.0001,40.0021,9021.1903,0,0.094

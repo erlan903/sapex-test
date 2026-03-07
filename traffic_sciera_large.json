@@ -1,6 +1,6 @@
 {
     "description": "Baseline steady-state traffic for sciera_large topology. No failures or stress events — use as control run to compare against path_failure, shared_bottleneck, and thundering_herd scenarios.",
-    "duration_ms": 30000,
+    "duration_ms": 90000,
     "flows": [
         {
             "name": "EU-IntraRegion-OVGU-ETHZ",

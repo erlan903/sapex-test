@@ -1,0 +1,16 @@
+{
+  "topology": "topology.json",
+  "traffic": "scenario_A.json",
+  "algorithm": "sapex",
+  "scenario": "scenario_A.json",
+  "output_dir": "results\\20260307_193306\\scenario_A.json\\sapex",
+  "experiment_name": "sapex__scenario_A.json__topology.json__np1000_tr2000_cd100_ld1.0_b100",
+  "parameters": {
+    "num_packets": 1000,
+    "packet_size_bytes": 1500,
+    "t_round_ms": 2000,
+    "cooldown_ms": 100,
+    "lambda_div": 1.0,
+    "point_budget": 100
+  }
+}

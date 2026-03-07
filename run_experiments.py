@@ -66,6 +66,14 @@ LAMBDA_DIV_OPTIONS = [0.3, 0.5, 0.7, 1.0]         # Weight for diversity reward
 POINT_BUDGET_OPTIONS = [100, 250, 500]             # Application point budgets
 
 
+def _safe_label(value):
+    """Convert arbitrary values into path-safe labels for file names."""
+    text = str(value)
+    for ch in ['/', '\\', ':', '*', '?', '"', '<', '>', '|']:
+        text = text.replace(ch, '_')
+    return text.replace(' ', '_')
+
+
 # ---- Predefined experiment sets ----
 EXPERIMENT_SETS = {
     "quick": {
@@ -131,10 +139,11 @@ EXPERIMENT_SETS = {
 # ============================================================================
 
 class ExperimentRunner:
-    def __init__(self, output_base_dir="results", dry_run=False, verbose=True):
+    def __init__(self, output_base_dir="results", dry_run=False, verbose=True, timeout_sec=600):
         self.output_base_dir = Path(output_base_dir)
         self.dry_run = dry_run
         self.verbose = verbose
+        self.timeout_sec = timeout_sec
         self.timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         self.run_results = []
         self.logger = ResultLogger(base_dir=str(self.output_base_dir))
@@ -184,8 +193,10 @@ class ExperimentRunner:
                     ))
 
                     for (n_pkts, t_round, cooldown, lam_div, budget) in param_combos:
+                        scenario_label = _safe_label(scenario_name)
+                        topo_label = _safe_label(topo_name)
                         exp_name = (
-                            f"{algo}__{scenario_name}__{topo_name}"
+                            f"{algo}__{scenario_label}__{topo_label}"
                             f"__np{n_pkts}_tr{t_round}_cd{cooldown}"
                             f"_ld{lam_div}_b{budget}"
                         )
@@ -246,12 +257,12 @@ class ExperimentRunner:
         ]
 
         try:
+            # Stream subprocess output live so long simulations do not look stuck.
             result = subprocess.run(
                 cmd,
-                capture_output=True,
                 text=True,
                 cwd=str(Path(__file__).parent),
-                timeout=600,  # 10 min timeout per experiment
+                timeout=self.timeout_sec,
             )
 
             if result.returncode == 0:
@@ -259,10 +270,6 @@ class ExperimentRunner:
                 status = "success"
             else:
                 self.log(f"  ✗ Failed (exit {result.returncode})")
-                if result.stderr:
-                    # Print first 5 lines of stderr
-                    for line in result.stderr.strip().split('\n')[:5]:
-                        self.log(f"    {line}")
                 status = "failed"
 
             return {
@@ -272,7 +279,7 @@ class ExperimentRunner:
             }
 
         except subprocess.TimeoutExpired:
-            self.log(f"  ✗ Timeout (>600s)")
+            self.log(f"  ✗ Timeout (>{self.timeout_sec}s)")
             return {"experiment": name, "status": "timeout"}
         except Exception as e:
             self.log(f"  ✗ Error: {e}")
@@ -406,6 +413,80 @@ def list_options():
     print()
 
 
+def _load_json_if_exists(path):
+    """Return parsed JSON for an existing file path, else None."""
+    if not path:
+        return None
+
+    p = Path(path)
+    if not p.is_file():
+        return None
+
+    try:
+        with open(p, 'r') as f:
+            return json.load(f)
+    except Exception:
+        return None
+
+
+def _apply_scenario_file_defaults(
+    scenarios,
+    algorithms,
+    topologies,
+    num_packets,
+    t_round,
+    cooldown,
+    lambda_div,
+    budget,
+    cli_args,
+):
+    """
+    Apply defaults from a single config-style scenario file when CLI did not
+    explicitly provide those values.
+
+    Config-style scenario files are JSON files with keys like topology,
+    traffic, algorithm, and parameters.
+    """
+    if not scenarios or len(scenarios) != 1:
+        return algorithms, topologies, num_packets, t_round, cooldown, lambda_div, budget
+
+    scenario_data = _load_json_if_exists(scenarios[0])
+    if not isinstance(scenario_data, dict):
+        return algorithms, topologies, num_packets, t_round, cooldown, lambda_div, budget
+
+    # Heuristic: treat as config-style scenario only when it looks like one.
+    if "topology" not in scenario_data or "traffic" not in scenario_data:
+        return algorithms, topologies, num_packets, t_round, cooldown, lambda_div, budget
+
+    params = scenario_data.get("parameters", {})
+
+    if cli_args.algorithms is None and scenario_data.get("algorithm"):
+        algorithms = [scenario_data["algorithm"]]
+
+    if cli_args.topologies is None and scenario_data.get("topology"):
+        topologies = [scenario_data["topology"]]
+
+    if cli_args.num_packets is None and params.get("num_packets") is not None:
+        num_packets = [params["num_packets"]]
+
+    if cli_args.t_round is None and params.get("t_round_ms") is not None:
+        t_round = [params["t_round_ms"]]
+
+    if cli_args.cooldown is None and params.get("cooldown_ms") is not None:
+        cooldown = [params["cooldown_ms"]]
+
+    # Accept both lambda_div and legacy lambda key.
+    if cli_args.lambda_div is None:
+        lam_value = params.get("lambda_div", params.get("lambda"))
+        if lam_value is not None:
+            lambda_div = [lam_value]
+
+    if cli_args.budget is None and params.get("point_budget") is not None:
+        budget = [params["point_budget"]]
+
+    return algorithms, topologies, num_packets, t_round, cooldown, lambda_div, budget
+
+
 # ============================================================================
 # MAIN
 # ============================================================================
@@ -440,7 +521,7 @@ Examples:
     # Custom selections
     parser.add_argument("--algorithms", nargs="+", choices=ALGORITHMS, default=None)
     parser.add_argument("--scenarios", nargs="+", default=None,
-                        help="Scenario names or custom traffic JSON paths")
+                        help="Scenario names, scenario JSON paths, or config-style scenario files")
     parser.add_argument("--topologies", nargs="+", default=None,
                         help="Topology names or custom topology JSON paths")
 
@@ -460,6 +541,8 @@ Examples:
                         help="List all available options and exit")
     parser.add_argument("--quiet", action="store_true",
                         help="Suppress verbose output")
+    parser.add_argument("--timeout-sec", type=int, default=600,
+                        help="Per-experiment timeout in seconds (default: 600)")
 
     args = parser.parse_args()
 
@@ -489,10 +572,25 @@ Examples:
         lambda_div = args.lambda_div or [0.5]
         budget = args.budget or [100]
 
+    # If a config-style scenario file is provided (for example scenario_B.json),
+    # use its topology/algorithm/parameter defaults unless CLI overrides them.
+    algorithms, topologies, num_packets, t_round, cooldown, lambda_div, budget = _apply_scenario_file_defaults(
+        scenarios_,
+        algorithms,
+        topologies,
+        num_packets,
+        t_round,
+        cooldown,
+        lambda_div,
+        budget,
+        args,
+    )
+
     runner = ExperimentRunner(
         output_base_dir=args.output_dir,
         dry_run=args.dry_run,
         verbose=not args.quiet,
+        timeout_sec=args.timeout_sec,
     )
 
     configs = runner.generate_experiment_configs(

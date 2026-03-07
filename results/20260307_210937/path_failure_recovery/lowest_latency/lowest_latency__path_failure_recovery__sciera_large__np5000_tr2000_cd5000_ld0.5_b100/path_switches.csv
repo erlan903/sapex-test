@@ -1,5 +1,0 @@
-flow_name,sim_time_ms,new_path
-Primary-EU-to-US,5000,71-2:0:1a-br-ovgu-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-11537-br-i2-2 -> 71-11537-br-i2-1 -> 71-2:0:30-br-cmu-1
-Secondary-EU-to-US,5000,71-2:0:1b-br-tub-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-11537-br-i2-2 -> 71-11537-br-i2-1 -> 71-2:0:31-br-mit-1
-EU-to-ASIA,5000,71-2:0:1c-br-lmu-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-1781-br-kisti-2 -> 71-1781-br-kisti-1 -> 71-2:0:40-br-kaist-1
-Intra-EU,5000,71-2:0:25-br-ethz-1 -> 71-559-br-switch-1 -> 71-20965-br-fra-2 -> 71-20965-br-fra-1 -> 71-2:0:1a-br-ovgu-1

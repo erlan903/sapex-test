@@ -159,12 +159,12 @@ class Simulation:
         unchanged_ms = 0
 
         while self.env.now < deadline:
-            step_until = min(deadline, self.env.now + check_interval_ms)
-            self.env.run(until=step_until)
+            step_duration = min(check_interval_ms, deadline - self.env.now)
+            yield self.env.timeout(step_duration)
 
             snapshot = self._metrics_snapshot()
             if snapshot == previous_snapshot:
-                unchanged_ms += check_interval_ms
+                unchanged_ms += step_duration
             else:
                 unchanged_ms = 0
                 previous_snapshot = snapshot
@@ -246,13 +246,20 @@ class Simulation:
         # Schedule event manager process
         self.env.process(self.event_manager.schedule_events())
 
-        # Run the simulation for a specified duration
+        # Run the simulation until the configured absolute stop time.
         simulation_duration = self.traffic_scenario.get("duration_ms", 1000)
-        print(f"\nRunning simulation for {simulation_duration}ms...")
-        self.env.run(until=simulation_duration)
+        print(f"\nRunning simulation until t={simulation_duration}ms...")
+        remaining_duration = simulation_duration - self.env.now
+        if remaining_duration > 0:
+            yield self.env.timeout(remaining_duration)
+        else:
+            print(
+                f"Simulation duration already elapsed at t={self.env.now:.2f}ms; "
+                "skipping main traffic window."
+            )
 
         # Optional post-duration settling period for in-flight packets.
-        self._run_drain_phase()
+        yield from self._run_drain_phase()
 
         print("\nSimulation finished.")
         self.print_results()

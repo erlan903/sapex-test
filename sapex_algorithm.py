@@ -1,4 +1,7 @@
 import random
+
+# Add the correct base-class import used in your project.
+# If ShortestPathAlgorithm comes from path_selection, use the same module:
 from path_selection import PathSelectionAlgorithm
 
 #To integrate path lists, every path may be handled as objects with the following attributes
@@ -155,6 +158,7 @@ class SapexAlgorithm(PathSelectionAlgorithm):
         self.T_round = 2000  # Allocation epoch in ms 
         self.delay = 0  # Current jitter delay
         self.max_delay = self.T_round / 2  # Max delay = T_round/2
+        self.active_set = []  # Tracks active candidates from previous round
     
     #Step 1: Retrieve paths -- Beaconing integration needed
 
@@ -444,7 +448,7 @@ class SapexAlgorithm(PathSelectionAlgorithm):
         
         overlap_count = len(ep_set.intersection(ea_set))
         fraction = overlap_count / len(ea_set)
-        diversity_bonus = weight_diversity * (1 - len(fraction))        
+        diversity_bonus = weight_diversity * (1 - fraction)
         return diversity_bonus  
             
     #When the application requests a path, it must introduce itself to the algorithm 
@@ -452,164 +456,101 @@ class SapexAlgorithm(PathSelectionAlgorithm):
     # --> app_instance argument
     def select_path(self, source_as, destination_as, app_instance=None):
 
-        current_budget = 0
-        if app_instance:    
-            current_budget = app_instance.budget
-        
+        current_budget = app_instance.budget if app_instance else 0
+
         retrieved_paths = self._sync_candidates(source_as, destination_as)
         if not retrieved_paths:
             return None
-        
+
+        current_time = self.topology.env.now
         filtered_paths = []
 
-    #Step 3: Compute the composite scores S(p,a) for each path
-        # Detect bottlenecks across ALL filtered paths first
-        detected_bottlenecks_list = self.detect_shared_bottlenecks(filtered_paths)
-        weight_sb = 0.1 
-        new_active_set = []
-        #multipliers depending on the state of the path
-        alpha_probe = 0.7 
-        alpha_inactive = 0.4
-        alpha_state = 0 
-        #random multiplier per each app will be created stored in application.py
-        
-        #Step 3.1: Calculate the base scores
-        #for loop on path dictionary/list
-        for p in filtered_paths:
-            #initalize weights for each path at the beginning of the iteration
-            weight_throughput = 0.1
-            weight_packet_loss = -0.1
-            weight_rtt = -0.1
-            
-            #Priority to probing data
-            rtt_val = self.get_path_latency(p.router_path)
-            #if there is no probing data yet, then use the current value of the path
-            if rtt_val is None:
-                rtt_val = p.avg_latency
-
-            #p.base_score = (weight_throughput * throughput) + (weight_packet_loss * packet_loss_rate) + (weight_rtt * rtt)
-            base_score = (p.weight_throughput * p.get_avg_throughput()) + (p.weight_packet_loss * p.get_loss_rate()) \
-                + (p.weight_rtt * rtt_val)
-                
-            #Step 3.2: Calculate the SB_penaltys for each path
-            #use detect_shared_bottlenecks(self, active_paths) to get sbl interfaces
-            # weight_sb * ( 
-            # len(common(umcc_shared_bottleneck_interfaces, interfaces_of_path_p)) / len(interfaces_of_path_p))
-            Ep = p.get_interface_ids()
-            shared_interface_count = len(SBL.intersection(Ep))
-            interface_count_of_path = len(Ep)
-            if interface_count_of_path > 0:
-                sb_penalty = (weight_sb * shared_interface_count) / interface_count_of_path
-            else:
-                sb_penalty = 0
-                
-            #Step 3.3: Calculate the diversity bonuses for each path
-            # a helper method, to decouple 
-            div_bonus = self.calculate_diversity_bonus(p, current_active, weight_diversity)
-
-            #Step 4.4: integrate state logic into the scoring
-            if p.state == 'ACTIVE':
-                alpha_state = 1
-            elif p.state == 'PROBING':
-                alpha_state = alpha_probe
-            elif p.state == 'INACTIVE':
-                alpha_state = alpha_inactive    
-            
-            #Step 4.5: final scoring
-            #get the app-specific randomness value for the path selection
-            lambda_rand = app_instance.path_selection_randomness if app_instance else 1
-            final_score = lambda_rand * ((alpha_state * base_score) - sb_penalty + div_bonus)
-            p.score = final_score
-
-
-    #Step 4: Sort paths by descending composite scores (S(p,a))
-            #May be merge sort as the default --> O(nlogn) time complexity 
-            #Different sorting algorithms could be tested for a comparison
-        filtered_paths.sort(key=lambda x: x.score, reverse=True)
-        #reverse=True (descending order), take scores of path sobjects as sorting argument
-        
-        current_time = self.topology.env.now
-
+        # Step 2: Build candidate list first (availability + cooldown + constraints).
         for p in retrieved_paths:
-            
             if not self.is_path_available(p.router_path):
-                # If the path is physically down (via events), ignore it completely
                 p.state = "INACTIVE"
                 continue
-            
+
             if p.state == "COOLDOWN":
                 if current_time < p.cooldown_until:
-                    # Path is still in cooldown, skip it
                     continue
-                else:
-                    p.state = "PROBING"
-            
-            loss_rate = (p.packet_loss_count / p.packets_sent) if p.packets_sent > 0 else 0.0
+                p.state = "PROBING"
 
+            loss_rate = p.get_loss_rate()
             if p.avg_latency <= self.max_latency and loss_rate <= self.max_loss_rate:
                 filtered_paths.append(p)
-            
-            #else if the path is not meeting the constraints, change its state to COOLDOWN 
-            #indication of failure(not hardcoded but based on application's own path info)
             else:
                 p.state = "COOLDOWN"
                 p.cooldown_until = current_time + self.cooldown_duration
-                path_cost = p.score
                 print(f"[{self.env.now if self.env else 0:.2f}] Path {p.router_path} entering COOLDOWN due to constraint violation")
-                # Refund points of failed paths back to the application budget
-                app_instance.budget = app_instance.budget + path_cost
-                current_budget = app_instance.budget
-                
-                # Replace the failing paths with best PROBING path by score
-                # collect all probing paths from retrieved paths
-                probing_paths = [path for path in retrieved_paths if path.state == "PROBING"]
-                # sort the probing paths by score
-                probing_paths.sort(key=lambda x: x.score, reverse=True)
-                if probing_paths:
-                    best_probing = probing_paths[0]
-                    #set the best probing path state to ACTIVE
-                    best_probing.state = "ACTIVE"
-                    #add the best probing path to filtered paths
-                    filtered_paths.append(best_probing)
-                    print(f"[{self.env.now if self.env else 0:.2f}] Promoting probing path {best_probing.router_path} to ACTIVE to replace failed path")
-                
-        # Filter out paths marked as down
-        retrieved_paths = [
-            p for p in retrieved_paths
-            if self.is_path_available(p.router_path)
-        ]
 
-        if not retrieved_paths:
-            return None
-
-        #Compare the path metrics with those constraints and remove the insufficient ones
-        #from the path set (python list of paths)
-        #if else logic can be used
-        
-
-                
-            
-        #If strict cooldown filtering removes all paths, allow the 
-        # least bad ones (excluding physically down ones) to avoid total connectivity loss.    
+        # Fallback: avoid total loss of connectivity if strict filtering removes all paths.
         if not filtered_paths:
-            available_physically = []
-            for p in retrieved_paths:
-                if self.is_path_available(p.router_path):
-                    available_physically.append(p)
-            if available_physically:
-                filtered_paths = available_physically
-                for p in filtered_paths:
+            filtered_paths = [
+                p for p in retrieved_paths
+                if self.is_path_available(p.router_path)
+            ]
+            for p in filtered_paths:
+                if p.state != "COOLDOWN":
                     p.state = "PROBING"
 
-        #Fallback if strict filtering kills all paths(least-worst)
         if not filtered_paths:
-            filtered_paths = retrieved_paths
-    
+            return None
 
-        # UMCC: Apply shared bottleneck detection and filtering
-        # Step 8: Repeat in case more congestion is located
+        # Step 3: Compute scores for the selected candidates only.
+        detected_bottlenecks_list = self.detect_shared_bottlenecks(filtered_paths)
+        shared_bottleneck_interfaces = set()
+        for bottleneck in detected_bottlenecks_list:
+            shared_bottleneck_interfaces.update(bottleneck)
+
+        weight_sb = 0.1
+        alpha_probe = 0.7
+        alpha_inactive = 0.4
+        current_active = getattr(self, "active_set", [])
+
+        for p in filtered_paths:
+            weight_throughput = 0.1
+            weight_packet_loss = -0.1
+            weight_rtt = -0.1
+
+            rtt_val = self.get_path_latency(p.router_path)
+            if rtt_val is None:
+                rtt_val = p.avg_latency
+
+            base_score = (
+                (weight_throughput * p.get_avg_throughput())
+                + (weight_packet_loss * p.get_loss_rate())
+                + (weight_rtt * rtt_val)
+            )
+
+            ep_set = p.get_interface_ids()
+            if ep_set:
+                sb_penalty = (weight_sb * len(shared_bottleneck_interfaces.intersection(ep_set))) / len(ep_set)
+            else:
+                sb_penalty = 0.0
+
+            div_bonus = self.calculate_diversity_bonus(p, current_active)
+
+            if p.state == "ACTIVE":
+                alpha_state = 1.0
+            elif p.state == "PROBING":
+                alpha_state = alpha_probe
+            else:
+                alpha_state = alpha_inactive
+
+            lambda_rand = app_instance.path_scoring_randomness if app_instance else 1.0
+            p.score = lambda_rand * ((alpha_state * base_score) - sb_penalty + div_bonus)
+
+        # Step 4: Sort once after scoring.
+        filtered_paths.sort(key=lambda x: x.score, reverse=True)
+
+        # Step 5: Apply UMCC constraints and keep score order for the survivors.
         if self.enable_umcc:
             filtered_paths = self.apply_bottleneck_constraints(filtered_paths)
+            filtered_paths.sort(key=lambda x: x.score, reverse=True)
+
+        if not filtered_paths:
+            return None
     
 
 
@@ -666,9 +607,6 @@ class SapexAlgorithm(PathSelectionAlgorithm):
             if candidate not in active_set: #simple iteration for now
                 candidate.state = "INACTIVE"
         
-        # SAVE STATE: To ensure next time we call select_path, 
-        # these paths are treated as "already in use" for the app.
-        self.active_set = active_set
         # change their state attributes to 'ACTIVE' 
         for p in active_set:
             p.state = "ACTIVE"
@@ -679,7 +617,9 @@ class SapexAlgorithm(PathSelectionAlgorithm):
         # NOTE: Jitter delay is recorded but NOT applied here via yield,
         # because yield would turn select_path into a generator.
         # Instead, the caller (application) should apply the delay. See self.delay.
-        if set(active_set) != set(self.active_set):
+        prev_active_set = set(self.active_set)
+        self.active_set = active_set
+        if set(active_set) != prev_active_set:
             # Active set has changed - compute jitter delay for caller to apply
             self.delay = random.uniform(0, self.max_delay)
             print(f"[{self.env.now if self.env else 0:.2f}] Active path set changed. Jitter delay of {self.delay:.2f} ms should be applied by caller.")
@@ -690,6 +630,4 @@ class SapexAlgorithm(PathSelectionAlgorithm):
         # Return a randomly selected path from the active set for load distribution
         if active_set:
             return random.choice(active_set).router_path
-        
         return None
-            

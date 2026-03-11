@@ -1,0 +1,16 @@
+{
+  "topology": "topologies/sciera_large.json",
+  "traffic": "scenarios/path_failure_recovery.json",
+  "algorithm": "lowest_latency",
+  "scenario": "path_failure_recovery",
+  "output_dir": "results\\20260311_201637\\path_failure_recovery\\lowest_latency",
+  "experiment_name": "lowest_latency__path_failure_recovery__sciera_large__np5000_tr2000_cd5000_ld0.5_b100",
+  "parameters": {
+    "num_packets": 5000,
+    "packet_size_bytes": 1500,
+    "t_round_ms": 2000,
+    "cooldown_ms": 5000,
+    "lambda_div": 0.5,
+    "point_budget": 100
+  }
+}

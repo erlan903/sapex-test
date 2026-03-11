@@ -1,0 +1,138 @@
+{
+  "experiment": "sapex__path_failure_recovery__sciera_large__np5000_tr2000_cd5000_ld0.5_b100",
+  "algorithm": "sapex",
+  "scenario": "path_failure_recovery",
+  "parameters": {
+    "num_packets": 5000,
+    "packet_size_bytes": 1500,
+    "t_round_ms": 2000,
+    "cooldown_ms": 5000,
+    "lambda_div": 0.5,
+    "point_budget": 100
+  },
+  "metrics": {
+    "global": {
+      "total_packets_sent": 25939,
+      "total_packets_received": 7859,
+      "total_packets_lost": 0,
+      "total_packets_unaccounted": 18080,
+      "packet_loss_rate_percent": 0.0,
+      "total_path_switches": 55,
+      "latency_min_ms": 40.0002,
+      "latency_max_ms": 94321.0061,
+      "latency_avg_ms": 41281.3901,
+      "latency_median_ms": 40926.0048,
+      "latency_p95_ms": 78747.0058,
+      "latency_p99_ms": 91040.006,
+      "wall_clock_seconds": 5.547
+    },
+    "per_flow": {
+      "Primary-EU-to-US": {
+        "packets_sent": 6826,
+        "packets_received": 1088,
+        "packets_lost": 0,
+        "packets_unaccounted": 5738,
+        "loss_rate_percent": 0.0,
+        "bytes_sent": 10239000,
+        "transfer_time_ms": 94949.01,
+        "throughput_mbps": 0.8627,
+        "path_switches": 14,
+        "latency_min_ms": 259.0002,
+        "latency_max_ms": 93862.0107,
+        "latency_avg_ms": 47092.0375,
+        "latency_median_ms": 47145.0054,
+        "latency_p95_ms": 89326.0101,
+        "latency_p99_ms": 93022.0106,
+        "latency_stddev_ms": 27070.7095
+      },
+      "Secondary-EU-to-US": {
+        "packets_sent": 6826,
+        "packets_received": 617,
+        "packets_lost": 0,
+        "packets_unaccounted": 6209,
+        "loss_rate_percent": 0.0,
+        "bytes_sent": 10239000,
+        "transfer_time_ms": 94937.01,
+        "throughput_mbps": 0.8628,
+        "path_switches": 15,
+        "latency_min_ms": 587.0002,
+        "latency_max_ms": 94321.0061,
+        "latency_avg_ms": 47541.2068,
+        "latency_median_ms": 47529.0032,
+        "latency_p95_ms": 89401.0059,
+        "latency_p99_ms": 93277.0061,
+        "latency_stddev_ms": 26979.2074
+      },
+      "EU-to-ASIA": {
+        "packets_sent": 6826,
+        "packets_received": 693,
+        "packets_lost": 0,
+        "packets_unaccounted": 6133,
+        "loss_rate_percent": 0.0,
+        "bytes_sent": 10239000,
+        "transfer_time_ms": 94927.01,
+        "throughput_mbps": 0.8629,
+        "path_switches": 15,
+        "latency_min_ms": 967.0002,
+        "latency_max_ms": 94235.0069,
+        "latency_avg_ms": 47467.0482,
+        "latency_median_ms": 47301.0036,
+        "latency_p95_ms": 89829.0066,
+        "latency_p99_ms": 93401.0069,
+        "latency_stddev_ms": 27081.8292
+      },
+      "Intra-EU": {
+        "packets_sent": 5461,
+        "packets_received": 5461,
+        "packets_lost": 0,
+        "packets_unaccounted": 0,
+        "loss_rate_percent": 0.0,
+        "bytes_sent": 8191500,
+        "transfer_time_ms": 82691.05,
+        "throughput_mbps": 0.7925,
+        "path_switches": 11,
+        "latency_min_ms": 40.0002,
+        "latency_max_ms": 77231.0527,
+        "latency_avg_ms": 38631.5179,
+        "latency_median_ms": 38635.0264,
+        "latency_p95_ms": 73364.05,
+        "latency_p99_ms": 76460.0522,
+        "latency_stddev_ms": 22285.2766
+      }
+    },
+    "per_path": {
+      "71-2:0:1a-br-ovgu-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-11537-br-i2-2 -> 71-11537-br-i2-1 -> 71-2:0:30-br-cmu-1": {
+        "packets_forwarded": 5000,
+        "bytes_forwarded": 7500000
+      },
+      "71-2:0:1b-br-tub-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-1781-br-kisti-2 -> 71-11537-br-i2-2 -> 71-11537-br-i2-1 -> 71-2:0:31-br-mit-1": {
+        "packets_forwarded": 5000,
+        "bytes_forwarded": 7500000
+      },
+      "71-2:0:1c-br-lmu-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-559-br-switch-1 -> 71-11537-br-i2-2 -> 71-1781-br-kisti-2 -> 71-1781-br-kisti-1 -> 71-2:0:40-br-kaist-1": {
+        "packets_forwarded": 5000,
+        "bytes_forwarded": 7500000
+      },
+      "71-2:0:25-br-ethz-1 -> 71-559-br-switch-1 -> 71-20965-br-fra-2 -> 71-20965-br-fra-1 -> 71-2:0:1a-br-ovgu-1": {
+        "packets_forwarded": 5000,
+        "bytes_forwarded": 7500000
+      },
+      "71-2:0:1a-br-ovgu-1 -> 71-20965-br-fra-1 -> 71-20965-br-par-1 -> 71-20965-br-fra-2 -> 71-559-br-switch-1 -> 71-11537-br-i2-2 -> 71-11537-br-i2-1 -> 71-2:0:30-br-cmu-1": {
+        "packets_forwarded": 1826,
+        "bytes_forwarded": 2739000
+      },
+      "71-2:0:1b-br-tub-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-11537-br-i2-2 -> 71-11537-br-i2-1 -> 71-2:0:31-br-mit-1": {
+        "packets_forwarded": 1826,
+        "bytes_forwarded": 2739000
+      },
+      "71-2:0:1c-br-lmu-1 -> 71-20965-br-fra-1 -> 71-20965-br-fra-2 -> 71-1781-br-kisti-2 -> 71-1781-br-kisti-1 -> 71-2:0:40-br-kaist-1": {
+        "packets_forwarded": 1826,
+        "bytes_forwarded": 2739000
+      },
+      "71-2:0:25-br-ethz-1 -> 71-559-br-switch-1 -> 71-20965-br-fra-2 -> 71-20965-br-par-1 -> 71-20965-br-fra-1 -> 71-2:0:1a-br-ovgu-1": {
+        "packets_forwarded": 461,
+        "bytes_forwarded": 691500
+      }
+    }
+  }
+}
